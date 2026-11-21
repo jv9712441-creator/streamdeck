@@ -756,6 +756,15 @@
             "tipo": "app",
             "caminho": "https://open.spotify.com"
           }
+        },
+        {
+          "nome": "Microfone",
+          "icone": "🎙️",
+          "cor": "#b91c1c",
+          "acao": {
+            "tipo": "microfone",
+            "modo": "alternar"
+          }
         }
       ]
     }
@@ -770,6 +779,7 @@
     "dev-mode-2",
     "modos-3",
     "mixer-2",
-    "extras-clientes"
+    "extras-clientes",
+    "audio-mic"
   ]
 }

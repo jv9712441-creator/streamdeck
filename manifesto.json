@@ -1,9 +1,9 @@
 {
-  "versao": "2.0.3",
-  "notas": "Sem a aba EXTRAS; na VILTRUN, o botão Clientes virou o de mutar o microfone.",
+  "versao": "2.0.4",
+  "notas": "Sem a aba EXTRAS; botão de mutar o microfone na VILTRUN (no lugar de Clientes) e na AUDIO.",
   "arquivos": {
     "LEIA-ME.md": "47cee0904272f7132b3c3cc7406bb55533767b16b865395867f0b4a023a6c0ad",
-    "config.padrao.json": "1dd8a82f01f0a87302e4be5844114d89a7e31a6f7f59b28b8fd166f0676f3b63",
+    "config.padrao.json": "976e2b6c8f7b0680d26bb36f8cc0332a8e9a4ce42e2b19426367fea1de481c30",
     "ferramentas/fechar-apps.ps1": "235c8cf1391e5c2e17fd23378b583750444cac3d9b8c8662752d6f2ae8dca0cb",
     "ferramentas/microfone.ps1": "0cb02aad4b9ec7b40b7b1742c5f7334b2d9ce3989be540aaa24910f9b160249d",
     "ferramentas/notificar.ps1": "1e2bf6ac57ca9cae6128d2fd420b355990b7681bb048660d1dd2b423f9ff7f3c",
@@ -26,7 +26,7 @@
     "public/manifest.webmanifest": "8242b1da8ec7241d94872f31eeced600e4da92c4ad528f2358c738a548626a1d",
     "public/marca.png": "49426210cfdc15e987734ab3f8e27b22254fd1106cc910fc337f04cce3cf3365",
     "public/sw.js": "31d7591198cb17c0f4c9a045a68eb7130fb554ccb4e92d7eee3a1a365af09a3b",
-    "server.js": "171d413b16e66f62df425926f30bd0b17c33be5956ae2f62b90a1314155c1fca",
-    "versao.json": "13432221cd1a06c10d0ad0a4bd8729b203037a3e8cb53c655561967575bad128"
+    "server.js": "747557ae73e67ba090c825d5eeddf013e0f93cdd7b8a909a182d804496ac7da9",
+    "versao.json": "9ef1d7ee2aebf69dd6eb623ce6ee598f17f28c907d83716fe02ccaaca677d77c"
   }
 }

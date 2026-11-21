@@ -106,6 +106,13 @@ function carregarConfig() {
     if (i >= 0) v.botoes[i] = { id: novoId(), nome: 'Microfone', icone: '🎙️', cor: '#b91c1c', acao: { tipo: 'microfone', modo: 'alternar' } };
     c.migracoes.push('extras-clientes'); mudou = true;
   }
+  if (!c.migracoes.includes('audio-mic')) {
+    // botão de mutar o microfone também na aba AUDIO
+    const a = (c.paginas || []).find(p => p.nome === 'AUDIO');
+    if (a && !a.botoes.some(b => b.acao?.tipo === 'microfone'))
+      a.botoes.push({ id: novoId(), nome: 'Microfone', icone: '🎙️', cor: '#b91c1c', acao: { tipo: 'microfone', modo: 'alternar' } });
+    c.migracoes.push('audio-mic'); mudou = true;
+  }
   if (mudou) salvarConfig(c);
   return c;
 }

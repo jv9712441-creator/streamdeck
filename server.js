@@ -494,8 +494,10 @@ const servidor = http.createServer(async (req, res) => {
     }
 
     if (rota === '/api/limpar') {
-      for (let i = notifs.length - 1; i >= 0; i--)
-        if (notifs[i].status !== 'pendente' && (!corpo.id || notifs[i].id === corpo.id)) notifs.splice(i, 1);
+      // tipo: 'avisos' (tela de notificações), 'pedidos' (respondidos na tela de permissões) ou tudo
+      const apagar = n => n.status !== 'pendente' && (!corpo.id || n.id === corpo.id) &&
+        (corpo.tipo === 'avisos' ? !n.perguntar : corpo.tipo === 'pedidos' ? n.perguntar : true);
+      for (let i = notifs.length - 1; i >= 0; i--) if (apagar(notifs[i])) notifs.splice(i, 1);
       enviar('estado', { config: configPublica(), notifs, stats, atualizacao });
       return json(res, 200, { ok: true });
     }

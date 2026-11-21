@@ -14,10 +14,13 @@ Para abrir junto com o Windows: `Win+R` → `shell:startup` → crie ali um atal
 
 ## Usar
 
-- **Botões**: toque para executar. Deslize para o lado para trocar de página.
-- **✏️ Editar**: toque num botão para mudar nome, ícone (emoji), cor e o que ele faz. O **+** cria um novo. "Página…" cria, renomeia, move e apaga páginas.
-- **🕐 Relógio**: tela preta com o relógio. Toque para trocar o estilo: digital, minimalista, analógico, por extenso e pomodoro. Ele se mexe um pouquinho a cada minuto para não marcar a tela.
-- **🔔 Notificações**: pedidos de permissão abrem sozinhos com **Permitir / Negar**, inclusive por cima do relógio. O celular vibra.
+O app é dividido em telas. Deslize para o lado ou toque nos ícones de baixo:
+
+1. **🕐 Relógio** (abre sempre nele): tela preta tipo always on display. Toque para trocar o estilo: digital, minimalista, analógico, por extenso e pomodoro. A tela fica acesa e o relógio se mexe um pouquinho a cada minuto para não marcar.
+2. **🎛️ Botões**: toque para executar. As abas de cima são as suas páginas de botões. No **✏️** você muda nome, ícone (emoji), cor e o que cada botão faz; o **+** cria um novo e "Página…" cria, renomeia, move e apaga páginas.
+3. **🔔 Notificações**: avisos do PC e do Claude.
+4. **🛡️ Permissões**: pedidos com **Permitir / Negar**. Quando chega um, o celular vibra, pula sozinho para esta tela e depois volta para onde você estava.
+5. **💻 PC**: uso de CPU e RAM, versão e atualização, e desconectar o celular.
 
 ### Tipos de botão
 
@@ -52,7 +55,7 @@ Também dá para editar tudo direto no `config.json` (com o servidor fechado).
 
 ## Atualizações
 
-Não precisa baixar de novo. Quando sair versão nova, aparece uma faixa azul no topo do celular: toque, confirme e o PC baixa, confere e reinicia o Stream Deck sozinho. Seus botões e o pareamento continuam iguais. Para procurar na hora, entre no ✏️ e toque no número da versão (ex.: `v1.1.0`).
+Não precisa baixar de novo. Quando sair versão nova, aparece um aviso e um ponto azul no 💻: entre nessa tela, toque em **Atualizar agora**, confirme e o PC baixa, confere e reinicia o Stream Deck sozinho. Seus botões e o pareamento continuam iguais. Para procurar na hora, vá na tela 💻 PC.
 
 As atualizações vêm de https://github.com/jv9712441-creator/streamdeck
 

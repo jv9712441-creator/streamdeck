@@ -1,8 +1,8 @@
 {
-  "versao": "1.1.0",
-  "notas": "Modo deitado e atualização automática.",
+  "versao": "1.2.0",
+  "notas": "Agora em telas: relógio, botões, notificações, permissões e PC. Deslize para o lado.",
   "arquivos": {
-    "LEIA-ME.md": "e71ff8644cc115591759698c331304650c40c109910dac34575984509baf76ec",
+    "LEIA-ME.md": "96e0962eda25067622c0d9bb234e00e4b430885c3dc5f5843adee0cc8a14587d",
     "config.padrao.json": "e158ab934aa12af591bd96d408f5efe31aa82ec5f0a92a9c345f2a7f3c059286",
     "ferramentas/notificar.ps1": "1e2bf6ac57ca9cae6128d2fd420b355990b7681bb048660d1dd2b423f9ff7f3c",
     "ferramentas/teclas.ps1": "5776fa830eb5a6d507303165cad246c246b88c2cbc7a8274ec8080e6bff06e7f",
@@ -10,12 +10,12 @@
     "hooks/instalar-claude.js": "502a2291011c8c68258a279662095d7cd75df0f73a8f2b062c97feb95a222faf",
     "iniciar.bat": "3ca810884b4d26ba6d9b0d7997d54b9305770f9c73812bc748bd51a3db1e4f79",
     "public/acordado.mp4": "de501c3e05673785ca4d4334d7e0cee17395bf859269cdbfedc5cf86f4c29b61",
-    "public/app.css": "4938561fd503d8d5a2e65f28c58d9cdb12f61411dc02d6ed67065f7809d5b0ae",
-    "public/app.js": "59af3f55cc4fe22781c019678cc07003ac3ba5c0e8e27cbf22c1dacf7618e608",
+    "public/app.css": "912b8cbaa09a66ff4f65b2f7b30862b28c3c85fc8833652766bfdc29778c15b2",
+    "public/app.js": "5f283546efab193e165fbe6df3128059431c063322f0acbccdeca48be54adb3d",
     "public/icone.svg": "4f5691af4fa004f6ff1bdfc4d716fe5719aa73f9062a719f1a43780cfe329a66",
-    "public/index.html": "0ee2abb2177a004b99607b0b187f882a332abfbb371406d14d0ca140c21cedb7",
+    "public/index.html": "5382ef58e891b1436e8f1ebe704d362621111b093db529245480bfe69f447436",
     "public/manifest.webmanifest": "074f0083661dbe579eaffad940421cd1c835b50e708d368404f67f08733dc6ce",
-    "server.js": "a32677d706ef7c394571c945fcf16c258c16a0df0bd019568f0dccb323f53f54",
-    "versao.json": "13e2f46b38be63eb156710d9431fd50e95e400ac94b5411b4641cdfe91264e81"
+    "server.js": "b4bacaf95080a7c0f61f50d4c1f9a0e4f79b7ebb4b6a1242652b740eddb138dd",
+    "versao.json": "3f886eacdc66445aee367e5c17b2768deecbb8a2e4492aa17fd8d157bdc534fe"
   }
 }

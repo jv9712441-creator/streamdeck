@@ -1,13 +1,19 @@
 'use strict';
 // Stream Deck — interface do celular
+// Telas (deslize para o lado): 0 Relógio · 1 Botões · 2 Notificações · 3 Permissões · 4 PC
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const guardar = (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} };
 const ler = k => { try { return localStorage.getItem(k); } catch { return null; } };
 const vibrar = p => { try { navigator.vibrate?.(p); } catch {} };
+const hora = t => new Date(t).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
 
-const estado = { token: null, config: null, notifs: [], stats: null, pagina: +(ler('sd_pagina') || 0), editando: false, naoLidas: 0 };
+const TELA = { relogio: 0, botoes: 1, notificacoes: 2, permissoes: 3, pc: 4 };
+const estado = {
+  token: null, config: null, notifs: [], stats: null, atualizacao: null,
+  pagina: +(ler('sd_pagina') || 0), editando: false, naoLidas: 0, tela: 0,
+};
 
 // ------------------------------------------------------------ pareamento
 
@@ -50,7 +56,7 @@ function conectar() {
   $('#parear').hidden = true;
   fonte?.close();
   fonte = new EventSource('/api/eventos?t=' + encodeURIComponent(estado.token));
-  fonte.onopen = () => $('#status').classList.add('on');
+  fonte.onopen = () => { $('#status').classList.add('on'); atualizarRelogio(); };
   fonte.onerror = () => {
     $('#status').classList.remove('on');
     fetch('/api/ping', { headers: { 'x-token': estado.token } }).then(r => { if (r.status === 401) esquecerToken(); }).catch(() => {});
@@ -60,18 +66,68 @@ function conectar() {
     // o PC foi atualizado: recarrega para pegar a tela nova
     if (estado.versaoCarregada && d.config.versao !== estado.versaoCarregada) return location.reload();
     estado.versaoCarregada = d.config.versao;
-    estado.config = d.config; estado.notifs = d.notifs; estado.stats = d.stats;
-    mostrarAtualizacao(d.atualizacao);
-    renderizar(); renderizarUso(); renderizarNotifs(); proximoPedido();
+    estado.config = d.config; estado.notifs = d.notifs; estado.stats = d.stats; estado.atualizacao = d.atualizacao;
+    renderizar(); renderizarUso(); renderizarListas(); renderizarPC();
+    if (pendentes().length) abrirPermissoes();
   });
   fonte.addEventListener('config', e => { estado.config = JSON.parse(e.data); renderizar(); });
-  fonte.addEventListener('stats', e => { estado.stats = JSON.parse(e.data); renderizarUso(); });
+  fonte.addEventListener('stats', e => { estado.stats = JSON.parse(e.data); renderizarUso(); renderizarPC(); });
   fonte.addEventListener('notif', e => chegouNotif(JSON.parse(e.data)));
-  fonte.addEventListener('atualizacao', e => mostrarAtualizacao(JSON.parse(e.data)));
+  fonte.addEventListener('atualizacao', e => {
+    const nova = JSON.parse(e.data);
+    if (nova && nova.versao !== estado.atualizacao?.versao) aviso(`Versão ${nova.versao} disponível. Veja na tela 💻`);
+    estado.atualizacao = nova; renderizarPC();
+  });
   fonte.addEventListener('reiniciando', () => aviso('Atualizado! Reiniciando o Stream Deck…'));
 }
 
-// ------------------------------------------------------------ grade de botões
+// ------------------------------------------------------------ navegação entre telas
+
+const telas = $('#telas');
+const largura = () => telas.clientWidth || innerWidth;
+
+function irParaTela(i, suave = true) {
+  telas.scrollTo({ left: i * largura(), behavior: suave ? 'smooth' : 'instant' });
+  mudouTela(i);
+}
+
+function mudouTela(i) {
+  if (i === estado.tela) return;
+  estado.tela = i;
+  document.querySelectorAll('#menu button').forEach(b => b.classList.toggle('ativo', +b.dataset.ir === i));
+  if (i === TELA.notificacoes) { estado.naoLidas = 0; renderizarBadges(); }
+  if (i !== TELA.permissoes) voltarPara = null; // você navegou por conta própria
+  manterTelaLigada(i === TELA.relogio);
+  menuApagado(i === TELA.relogio);
+  if (i === TELA.botoes) ajustarGrade();
+}
+
+let fimRolagem;
+telas.addEventListener('scroll', () => {
+  clearTimeout(fimRolagem);
+  fimRolagem = setTimeout(() => mudouTela(Math.round(telas.scrollLeft / largura())), 80);
+}, { passive: true });
+
+$('#menu').addEventListener('click', e => {
+  const b = e.target.closest('[data-ir]');
+  if (b) { vibrar(8); irParaTela(+b.dataset.ir); }
+});
+
+addEventListener('resize', () => {
+  telas.scrollLeft = estado.tela * largura();
+  if (estado.config) ajustarGrade();
+});
+
+// No relógio, a barra de baixo fica apagadinha até você tocar na tela
+let tempoMenu;
+function menuApagado(sim) {
+  clearTimeout(tempoMenu);
+  $('#menu').classList.remove('apagado');
+  if (sim) tempoMenu = setTimeout(() => $('#menu').classList.add('apagado'), 4000);
+}
+$('#menu').addEventListener('touchstart', () => menuApagado(estado.tela === TELA.relogio), { passive: true });
+
+// ------------------------------------------------------------ tela de botões
 
 const paginas = () => estado.config?.paginas || [];
 
@@ -93,8 +149,7 @@ function renderizar() {
   const grade = $('#grade');
   grade.classList.toggle('editando', estado.editando);
   grade.innerHTML = '';
-  const pag = ps[estado.pagina];
-  (pag?.botoes || []).forEach((b, i) => {
+  (ps[estado.pagina]?.botoes || []).forEach((b, i) => {
     const el = document.createElement('button');
     el.className = 'tecla';
     el.style.background = b.cor || '#1f2937';
@@ -112,11 +167,16 @@ function renderizar() {
   ajustarGrade();
 }
 
+function irPagina(i) {
+  estado.pagina = i; guardar('sd_pagina', i); vibrar(8); renderizar();
+}
+
 // Tamanho dos botões: em pé usa o número de colunas escolhido;
-// deitado escolhe sozinho as colunas para tudo caber na tela sem rolar (ou usa o que você fixar).
+// deitado escolhe sozinho as colunas para tudo caber sem rolar (ou usa o que você fixar).
 const deitado = () => innerWidth > innerHeight;
 function ajustarGrade() {
   const grade = $('#grade');
+  if (!grade.clientWidth) return;
   const n = grade.children.length;
   const est = getComputedStyle(grade);
   const gap = parseFloat(est.columnGap) || 10;
@@ -144,27 +204,6 @@ function ajustarGrade() {
   grade.style.setProperty('--lado', Math.floor(Math.max(40, lado)) + 'px');
   $('#numColunas').textContent = deitado() ? (estado.config.colunasDeitado || 'Auto') : c;
 }
-addEventListener('resize', () => estado.config && ajustarGrade());
-
-function irPagina(i) {
-  estado.pagina = i; guardar('sd_pagina', i); vibrar(8); renderizar();
-}
-
-// deslizar para o lado troca de página
-(() => {
-  let x0 = null, y0 = null;
-  const g = $('#grade');
-  g.addEventListener('touchstart', e => { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
-  g.addEventListener('touchend', e => {
-    if (x0 == null) return;
-    const dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
-    x0 = null;
-    if (Math.abs(dx) > 70 && Math.abs(dx) > 2 * Math.abs(dy)) {
-      const n = estado.pagina + (dx < 0 ? 1 : -1);
-      if (n >= 0 && n < paginas().length) irPagina(n);
-    }
-  });
-})();
 
 async function apertar(b, el) {
   vibrar(12);
@@ -172,7 +211,7 @@ async function apertar(b, el) {
   if (b.confirmar && !(await confirmar(`${b.icone || ''} ${b.nome}`, 'Tem certeza?'))) return;
 
   if (a.tipo === 'pagina') { const i = paginas().findIndex(p => p.nome === a.pagina); if (i >= 0) irPagina(i); return; }
-  if (a.tipo === 'relogio') { abrirAOD(a.estilo); return; }
+  if (a.tipo === 'relogio') { if (a.estilo && RELOGIOS[a.estilo]) trocarEstilo(a.estilo); irParaTela(TELA.relogio); return; }
 
   const extra = {};
   if (a.tipo === 'texto-pc') {
@@ -206,96 +245,6 @@ function renderizarUso() {
   $('#uso').textContent = s ? `CPU ${s.cpu}% · RAM ${s.ram}%` : '';
 }
 
-// ------------------------------------------------------------ atualizações
-
-let novaVersao = null;
-function mostrarAtualizacao(nova) {
-  novaVersao = nova;
-  $('#atualizar').hidden = !nova;
-  if (nova) $('#atualizar').textContent = `⬆️ Versão ${nova.versao} disponível. Toque para atualizar`;
-  $('#btnVersao').textContent = 'v' + (estado.config?.versao || '?');
-}
-
-$('#atualizar').onclick = async () => {
-  if (!novaVersao) return;
-  if (!(await confirmar(`Atualizar para a versão ${novaVersao.versao}?`, novaVersao.notas || 'O Stream Deck reinicia sozinho no PC.'))) return;
-  aviso('Baixando a atualização…');
-  try {
-    const r = await api('atualizar');
-    if (!r.ok) aviso(r.erro || 'Não consegui atualizar', true);
-  } catch (e) { aviso(e.message, true); }
-};
-
-$('#btnVersao').onclick = async () => {
-  aviso('Procurando atualização…');
-  try {
-    const r = await api('atualizacao');
-    mostrarAtualizacao(r.nova);
-    aviso(r.erro ? r.erro : r.nova ? `Versão ${r.nova.versao} disponível!` : `Você já está na versão mais nova (${r.atual}).`, !!r.erro);
-  } catch (e) { aviso(e.message, true); }
-};
-
-// ------------------------------------------------------------ modais
-
-let fecharModalAtual = null;
-function abrirModal(html) {
-  $('#modalCaixa').innerHTML = html;
-  $('#modal').hidden = false;
-  return $('#modalCaixa');
-}
-function fecharModal() { $('#modal').hidden = true; $('#modalCaixa').innerHTML = ''; fecharModalAtual?.(); fecharModalAtual = null; }
-$('#modal').addEventListener('click', e => { if (e.target.id === 'modal') fecharModal(); });
-
-function confirmar(titulo, texto) {
-  return new Promise(resolve => {
-    const c = abrirModal(`<h2>${esc(titulo)}</h2><p>${esc(texto)}</p>
-      <div class="linha"><button class="neutro" data-r="0">Cancelar</button><button class="primario" data-r="1">Confirmar</button></div>`);
-    fecharModalAtual = () => resolve(false);
-    c.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { fecharModalAtual = null; fecharModal(); resolve(b.dataset.r === '1'); });
-  });
-}
-
-function pedirTexto(titulo, dica) {
-  return new Promise(resolve => {
-    const c = abrirModal(`<h2>${esc(titulo)}</h2><p class="dica">${esc(dica)}</p><textarea id="campoTexto"></textarea>
-      <div class="linha"><button class="neutro" data-r="0">Cancelar</button><button class="primario" data-r="1">Enviar</button></div>`);
-    fecharModalAtual = () => resolve(null);
-    setTimeout(() => $('#campoTexto')?.focus(), 50);
-    c.querySelectorAll('[data-r]').forEach(b => b.onclick = () => {
-      const v = $('#campoTexto').value;
-      fecharModalAtual = null; fecharModal(); resolve(b.dataset.r === '1' ? v : null);
-    });
-  });
-}
-
-function mostrarTexto(titulo, texto, copiavel) {
-  const c = abrirModal(`<h2>${esc(titulo)}</h2><pre>${esc(texto) || '<i>(vazio)</i>'}</pre>
-    <div class="linha">${copiavel ? '<button class="primario" data-copiar>Copiar no celular</button>' : ''}<button class="neutro" data-fechar>Fechar</button></div>`);
-  c.querySelector('[data-fechar]').onclick = fecharModal;
-  const bc = c.querySelector('[data-copiar]');
-  if (bc) bc.onclick = () => { copiar(texto); aviso('Copiado'); };
-}
-
-function copiar(texto) {
-  if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(texto).catch(() => copiarAntigo(texto));
-  copiarAntigo(texto);
-}
-function copiarAntigo(texto) {
-  const t = document.createElement('textarea');
-  t.value = texto; t.style.position = 'fixed'; t.style.opacity = '0';
-  document.body.append(t); t.select();
-  try { document.execCommand('copy'); } catch {}
-  t.remove();
-}
-
-let tempoAviso;
-function aviso(texto, erro) {
-  const a = $('#aviso');
-  a.textContent = texto; a.className = erro ? 'erro' : ''; a.hidden = false;
-  clearTimeout(tempoAviso);
-  tempoAviso = setTimeout(() => a.hidden = true, erro ? 4000 : 2200);
-}
-
 // ------------------------------------------------------------ edição de botões e páginas
 
 const TIPOS = {
@@ -311,7 +260,7 @@ const TIPOS = {
   'texto-pc': { nome: 'Enviar texto pro PC', campos: [['colar', 'Colar sozinho (Ctrl+V) depois de enviar', 'check']] },
   'clipboard-pc': { nome: 'Pegar clipboard do PC', campos: [] },
   pagina: { nome: 'Ir para outra página', campos: [['pagina', 'Página', 'paginas']] },
-  relogio: { nome: 'Modo relógio', campos: [['estilo', 'Estilo', 'select', '',
+  relogio: { nome: 'Ir para o relógio', campos: [['estilo', 'Estilo', 'select', '',
     { digital: 'Digital', minimal: 'Minimalista', analogico: 'Analógico', palavras: 'Por extenso', pomodoro: 'Pomodoro' }]] },
 };
 
@@ -338,7 +287,8 @@ $('#editarBarra').addEventListener('click', e => {
 
 function salvar() {
   renderizar();
-  return api('config', { paginas: estado.config.paginas, colunas: estado.config.colunas, colunasDeitado: estado.config.colunasDeitado || 0 }).catch(e => aviso(e.message, true));
+  return api('config', { paginas: estado.config.paginas, colunas: estado.config.colunas, colunasDeitado: estado.config.colunasDeitado || 0 })
+    .catch(e => aviso(e.message, true));
 }
 
 function campoHtml([chave, rotulo, tipo, dica, opcoes], valor) {
@@ -433,87 +383,214 @@ $('#btnPaginaConfig').onclick = () => {
 
 // ------------------------------------------------------------ notificações e permissões
 
+const pendentes = () => estado.notifs.filter(n => n.status === 'pendente').sort((a, b) => a.criado - b.criado);
+let voltarPara = null;
+
+function abrirPermissoes() {
+  if (estado.tela === TELA.permissoes) return;
+  const de = estado.tela;
+  irParaTela(TELA.permissoes);
+  voltarPara = de; // depois que você responder tudo, volta para onde estava
+}
+
 function chegouNotif(n) {
   const i = estado.notifs.findIndex(x => x.id === n.id);
   const nova = i < 0;
   n._recebido = nova ? Date.now() : estado.notifs[i]._recebido;
   if (nova) estado.notifs.unshift(n); else estado.notifs[i] = n;
 
-  if (nova) {
-    if (n.status === 'pendente') vibrar([200, 100, 200]);
-    else {
-      vibrar(60);
-      aviso(`${n.origem}: ${n.titulo}`);
-      if ($('#painelNotifs').hidden) estado.naoLidas++;
-    }
+  if (nova && n.status === 'pendente') {
+    vibrar([200, 100, 200]);
+    abrirPermissoes();
+  } else if (nova) {
+    vibrar(60);
+    if (estado.tela !== TELA.notificacoes) { estado.naoLidas++; aviso(`${n.origem}: ${n.titulo}`); }
   }
-  renderizarNotifs();
-  proximoPedido();
+  renderizarListas();
+  verSeVolta();
 }
 
-function renderizarNotifs() {
-  const pend = estado.notifs.filter(n => n.status === 'pendente').length;
-  const total = pend + estado.naoLidas;
-  $('#contador').hidden = !total;
-  $('#contador').textContent = total;
+function verSeVolta() {
+  if (voltarPara == null || pendentes().length) return;
+  const destino = voltarPara;
+  voltarPara = null;
+  setTimeout(() => { if (!pendentes().length && estado.tela === TELA.permissoes) irParaTela(destino); }, 900);
+}
 
-  const ROTULO = { pendente: 'aguardando', permitido: 'permitido', negado: 'negado', expirado: 'expirou', 'no-pc': 'respondido no PC', info: '' };
-  const lista = $('#listaNotifs');
-  if (!estado.notifs.length) { lista.innerHTML = '<p class="vazio">Nada por aqui.</p>'; return; }
-  lista.innerHTML = estado.notifs.map(n => `<div class="notif">
-      <div class="meta"><span>${esc(n.origem)} · ${new Date(n.criado).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}</span>
-      <span class="st-${n.status}">${ROTULO[n.status] || ''}</span></div>
+const ROTULO = { permitido: 'permitido', negado: 'negado', expirado: 'expirou', 'no-pc': 'respondido no PC' };
+
+function renderizarListas() {
+  // notificações (avisos)
+  const avisos = estado.notifs.filter(n => !n.perguntar);
+  $('#listaNotifs').innerHTML = avisos.length ? avisos.map(n => `<div class="notif">
+      <div class="meta"><span>${esc(n.origem)}</span><span>${hora(n.criado)}</span></div>
       <h3>${esc(n.titulo)}</h3>${n.mensagem ? `<p>${esc(n.mensagem)}</p>` : ''}
-      ${n.status === 'pendente' ? `<div class="linha"><button class="perigo" data-decidir="negar" data-id="${n.id}">Negar</button><button class="sucesso" data-decidir="permitir" data-id="${n.id}">Permitir</button></div>` : ''}
+    </div>`).join('') : '<p class="vazio">Nenhuma notificação.<br>As do PC (Discord, WhatsApp…) e os avisos do Claude aparecem aqui.</p>';
+
+  // permissões
+  const pend = pendentes();
+  $('#pendentes').innerHTML = pend.length ? pend.map(n => `<div class="pedido" data-id="${n.id}">
+      <span class="etiqueta">${esc(n.origem)} · ${hora(n.criado)}</span>
+      <h3>${esc(n.titulo)}</h3>
+      ${n.mensagem ? `<pre>${esc(n.mensagem)}</pre>` : ''}
+      <div class="tempo" data-fim="${(n._recebido || Date.now()) + (n.expira - n.criado)}"></div>
+      <div class="linha"><button class="perigo" data-decidir="negar">Negar</button><button class="sucesso" data-decidir="permitir">Permitir</button></div>
+      <button class="link" data-decidir="pc">Responder no PC</button>
+    </div>`).join('') : '<p class="vazio">Nenhum pedido esperando.<br>Quando o Claude pedir permissão, ela aparece aqui.</p>';
+  atualizarContagens();
+
+  const resp = estado.notifs.filter(n => n.perguntar && n.status !== 'pendente');
+  $('#tituloRespondidos').hidden = !resp.length;
+  $('#respondidos').innerHTML = resp.map(n => `<div class="notif">
+      <div class="meta"><span>${esc(n.origem)} · ${hora(n.criado)}</span><span class="st-${n.status}">${ROTULO[n.status] || ''}</span></div>
+      <h3>${esc(n.titulo)}</h3>${n.mensagem ? `<p>${esc(n.mensagem)}</p>` : ''}
     </div>`).join('');
+
+  renderizarBadges();
 }
 
-$('#listaNotifs').addEventListener('click', e => {
+function atualizarContagens() {
+  document.querySelectorAll('#pendentes [data-fim]').forEach(el => {
+    const s = Math.max(0, Math.round((+el.dataset.fim - Date.now()) / 1000));
+    el.textContent = `expira em ${s}s · se não responder, ele pergunta no PC`;
+  });
+}
+setInterval(atualizarContagens, 1000);
+
+function renderizarBadges() {
+  const pend = pendentes().length;
+  $('#badgePedidos').hidden = !pend; $('#badgePedidos').textContent = pend;
+  $('#badgeNotifs').hidden = !estado.naoLidas; $('#badgeNotifs').textContent = estado.naoLidas;
+  $('#badgePC').hidden = !estado.atualizacao;
+}
+
+$('#pendentes').addEventListener('click', e => {
   const b = e.target.closest('[data-decidir]');
-  if (b) decidir(b.dataset.id, b.dataset.decidir);
+  if (b) decidir(b.closest('[data-id]').dataset.id, b.dataset.decidir);
 });
-
-$('#btnNotifs').onclick = () => { $('#painelNotifs').hidden = false; estado.naoLidas = 0; renderizarNotifs(); };
-$('#painelNotifs [data-fechar]').onclick = () => { $('#painelNotifs').hidden = true; };
-$('#btnLimpar').onclick = () => api('limpar').catch(e => aviso(e.message, true));
-
-let pedidoAtual = null, relogioPedido = null;
-function proximoPedido() {
-  const pendentes = estado.notifs.filter(n => n.status === 'pendente').sort((a, b) => a.criado - b.criado);
-  const n = pendentes[0];
-  if (!n) { $('#pedido').hidden = true; pedidoAtual = null; clearInterval(relogioPedido); return; }
-  if (pedidoAtual === n.id) return;
-  pedidoAtual = n.id;
-  $('#pedidoOrigem').textContent = n.origem;
-  $('#pedidoTitulo').textContent = n.titulo;
-  $('#pedidoMensagem').textContent = n.mensagem;
-  $('#pedidoMensagem').hidden = !n.mensagem;
-  $('#pedido').hidden = false;
-  clearInterval(relogioPedido);
-  const fim = (n._recebido || Date.now()) + (n.expira - n.criado);
-  const tick = () => {
-    const s = Math.max(0, Math.round((fim - Date.now()) / 1000));
-    $('#pedidoTempo').textContent = `${pendentes.length > 1 ? `${pendentes.length} pedidos na fila · ` : ''}expira em ${s}s`;
-  };
-  tick(); relogioPedido = setInterval(tick, 1000);
-}
 
 function decidir(id, decisao) {
   vibrar(20);
   const n = estado.notifs.find(x => x.id === id);
   if (n) n.status = { permitir: 'permitido', negar: 'negado', pc: 'no-pc' }[decisao];
-  renderizarNotifs(); proximoPedido();
+  renderizarListas(); verSeVolta();
   api('decidir', { id, decisao }).catch(e => aviso(e.message, true));
 }
 
-$('#btnPermitir').onclick = () => pedidoAtual && decidir(pedidoAtual, 'permitir');
-$('#btnNegar').onclick = () => pedidoAtual && decidir(pedidoAtual, 'negar');
-$('#btnNoPC').onclick = () => pedidoAtual && decidir(pedidoAtual, 'pc');
+$('#btnLimparNotifs').onclick = () => api('limpar', { tipo: 'avisos' }).catch(e => aviso(e.message, true));
+$('#btnLimparPedidos').onclick = () => api('limpar', { tipo: 'pedidos' }).catch(e => aviso(e.message, true));
 
-// ------------------------------------------------------------ modo relógio (Always On Display)
+// ------------------------------------------------------------ tela do PC (estado e atualização)
+
+function renderizarPC() {
+  const s = estado.stats, c = estado.config;
+  if (c) {
+    $('#nomePC').textContent = c.nomePC || 'PC';
+    $('#textoVersao').textContent = estado.atualizacao
+      ? `Você está na versão ${c.versao}. A versão ${estado.atualizacao.versao} já saiu${estado.atualizacao.notas ? ': ' + estado.atualizacao.notas : '.'}`
+      : `Versão ${c.versao}. Está tudo em dia.`;
+    $('#btnAtualizar').hidden = !estado.atualizacao;
+  }
+  if (s) {
+    for (const [k, v] of [['Cpu', s.cpu], ['Ram', s.ram]]) {
+      $('#barra' + k).style.width = v + '%';
+      $('#barra' + k).style.background = v > 85 ? '#ef4444' : v > 60 ? '#facc15' : '#22c55e';
+      $('#valor' + k).textContent = v + '%';
+    }
+    $('#infoPC').textContent = s.ramTotalGB ? `${s.ramTotalGB} GB de RAM` : '';
+  }
+  renderizarBadges();
+}
+
+$('#btnAtualizar').onclick = async () => {
+  const nova = estado.atualizacao;
+  if (!nova) return;
+  if (!(await confirmar(`Atualizar para a versão ${nova.versao}?`, nova.notas || 'O Stream Deck reinicia sozinho no PC.'))) return;
+  aviso('Baixando a atualização…');
+  try {
+    const r = await api('atualizar');
+    if (!r.ok) aviso(r.erro || 'Não consegui atualizar', true);
+  } catch (e) { aviso(e.message, true); }
+};
+
+$('#btnProcurar').onclick = async () => {
+  aviso('Procurando atualização…');
+  try {
+    const r = await api('atualizacao');
+    estado.atualizacao = r.nova; renderizarPC();
+    aviso(r.erro ? r.erro : r.nova ? `Versão ${r.nova.versao} disponível!` : `Você já está na versão mais nova (${r.atual}).`, !!r.erro);
+  } catch (e) { aviso(e.message, true); }
+};
+
+$('#btnDesparear').onclick = async () => {
+  if (await confirmar('Desconectar este celular?', 'Para usar de novo, vai precisar escanear o QR code no PC.')) esquecerToken();
+};
+
+// ------------------------------------------------------------ modais
+
+let fecharModalAtual = null;
+function abrirModal(html) {
+  $('#modalCaixa').innerHTML = html;
+  $('#modal').hidden = false;
+  return $('#modalCaixa');
+}
+function fecharModal() { $('#modal').hidden = true; $('#modalCaixa').innerHTML = ''; fecharModalAtual?.(); fecharModalAtual = null; }
+$('#modal').addEventListener('click', e => { if (e.target.id === 'modal') fecharModal(); });
+
+function confirmar(titulo, texto) {
+  return new Promise(resolve => {
+    const c = abrirModal(`<h2>${esc(titulo)}</h2><p>${esc(texto)}</p>
+      <div class="linha"><button class="neutro" data-r="0">Cancelar</button><button class="primario" data-r="1">Confirmar</button></div>`);
+    fecharModalAtual = () => resolve(false);
+    c.querySelectorAll('[data-r]').forEach(b => b.onclick = () => { fecharModalAtual = null; fecharModal(); resolve(b.dataset.r === '1'); });
+  });
+}
+
+function pedirTexto(titulo, dica) {
+  return new Promise(resolve => {
+    const c = abrirModal(`<h2>${esc(titulo)}</h2><p class="dica">${esc(dica)}</p><textarea id="campoTexto"></textarea>
+      <div class="linha"><button class="neutro" data-r="0">Cancelar</button><button class="primario" data-r="1">Enviar</button></div>`);
+    fecharModalAtual = () => resolve(null);
+    setTimeout(() => $('#campoTexto')?.focus(), 50);
+    c.querySelectorAll('[data-r]').forEach(b => b.onclick = () => {
+      const v = $('#campoTexto').value;
+      fecharModalAtual = null; fecharModal(); resolve(b.dataset.r === '1' ? v : null);
+    });
+  });
+}
+
+function mostrarTexto(titulo, texto, copiavel) {
+  const c = abrirModal(`<h2>${esc(titulo)}</h2><pre>${esc(texto) || '<i>(vazio)</i>'}</pre>
+    <div class="linha">${copiavel ? '<button class="primario" data-copiar>Copiar no celular</button>' : ''}<button class="neutro" data-fechar>Fechar</button></div>`);
+  c.querySelector('[data-fechar]').onclick = fecharModal;
+  const bc = c.querySelector('[data-copiar]');
+  if (bc) bc.onclick = () => { copiar(texto); aviso('Copiado'); };
+}
+
+function copiar(texto) {
+  if (navigator.clipboard?.writeText) return navigator.clipboard.writeText(texto).catch(() => copiarAntigo(texto));
+  copiarAntigo(texto);
+}
+function copiarAntigo(texto) {
+  const t = document.createElement('textarea');
+  t.value = texto; t.style.position = 'fixed'; t.style.opacity = '0';
+  document.body.append(t); t.select();
+  try { document.execCommand('copy'); } catch {}
+  t.remove();
+}
+
+let tempoAviso;
+function aviso(texto, erro) {
+  const a = $('#aviso');
+  a.textContent = texto; a.className = erro ? 'erro' : ''; a.hidden = false;
+  clearTimeout(tempoAviso);
+  tempoAviso = setTimeout(() => a.hidden = true, erro ? 4000 : 2200);
+}
+
+// ------------------------------------------------------------ tela do relógio
 
 const ESTILOS = ['digital', 'minimal', 'analogico', 'palavras', 'pomodoro'];
-const aod = { estilo: ler('sd_estilo') || 'digital', tick: null, mover: null, trava: null };
+let estilo = ESTILOS.includes(ler('sd_estilo')) ? ler('sd_estilo') : 'digital';
 const dois = n => String(n).padStart(2, '0');
 
 const NUM = ['zero', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez', 'onze', 'doze', 'treze',
@@ -527,8 +604,8 @@ function horaPorExtenso(d) {
   if (h === 0) { verbo = 'É'; nome = 'meia-noite'; }
   else if (h === 12) { verbo = 'É'; nome = 'meio-dia'; }
   else { const h12 = h % 12; verbo = h12 === 1 ? 'É' : 'São'; nome = HORA[h12]; }
-  const periodo = h === 0 || h === 12 ? '' : h < 6 ? ' da madrugada' : h < 12 ? ' da manhã' : h < 19 ? ' da tarde' : ' da noite';
-  return `${verbo} <b>${nome}</b>${m ? ` e <b>${minutosPorExtenso(m)}</b>` : ' em ponto'}<small style="display:block;font-size:.45em;color:#52525b;margin-top:8px">${periodo.trim()}</small>`;
+  const periodo = h === 0 || h === 12 ? '' : h < 6 ? 'da madrugada' : h < 12 ? 'da manhã' : h < 19 ? 'da tarde' : 'da noite';
+  return `${verbo} <b>${nome}</b>${m ? ` e <b>${minutosPorExtenso(m)}</b>` : ' em ponto'}<small style="display:block;font-size:.45em;color:#52525b;margin-top:8px">${periodo}</small>`;
 }
 
 const pomodoro = { fase: 'foco', restante: 25 * 60, fim: null };
@@ -604,76 +681,69 @@ function trocarFase() {
   pomodoro.fim = null;
 }
 
-function montarRelogio() {
-  const el = $('#aodRelogio');
-  RELOGIOS[aod.estilo].montar(el);
-  atualizarAOD();
+function trocarEstilo(novo) {
+  estilo = novo; guardar('sd_estilo', novo);
+  RELOGIOS[estilo].montar($('#aodRelogio'));
+  atualizarRelogio();
 }
 
-function atualizarAOD() {
+function atualizarRelogio() {
   const d = new Date();
-  RELOGIOS[aod.estilo].atualizar($('#aodRelogio'), d);
-  $('#aodData').textContent = aod.estilo === 'pomodoro' ? '' : d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).replace(/^./, c => c.toUpperCase());
+  RELOGIOS[estilo].atualizar($('#aodRelogio'), d);
+  $('#aodData').textContent = estilo === 'pomodoro' ? '' : d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).replace(/^./, c => c.toUpperCase());
   const s = estado.stats;
-  const pend = estado.notifs.filter(n => n.status === 'pendente').length;
-  const avisos = pend + estado.naoLidas;
+  const pend = pendentes().length;
   $('#aodInfo').innerHTML = [
     s ? `CPU ${s.cpu}% · RAM ${s.ram}%` : '',
-    avisos ? `<span class="alerta">🔔 ${avisos}</span>` : '',
+    pend ? `<span class="alerta">🛡️ ${pend}</span>` : '',
+    estado.naoLidas ? `<span class="alerta">🔔 ${estado.naoLidas}</span>` : '',
     $('#status').classList.contains('on') ? '' : '⚠️ PC desconectado',
   ].filter(Boolean).join(' · ');
 }
+setInterval(atualizarRelogio, 1000);
 
-async function abrirAOD(estilo) {
-  if (estilo && RELOGIOS[estilo]) aod.estilo = estilo;
-  $('#aod').hidden = false;
-  try { await document.documentElement.requestFullscreen?.({ navigationUI: 'hide' }); } catch {}
-  manterTelaLigada(true);
-  montarRelogio();
-  clearInterval(aod.tick); clearInterval(aod.mover);
-  aod.tick = setInterval(atualizarAOD, 1000);
-  // move o conteúdo um pouquinho a cada minuto para não marcar a tela (burn-in)
-  aod.mover = setInterval(() => {
-    $('#aodConteudo').style.transform = `translate(${Math.round(Math.random() * 30 - 15)}px, ${Math.round(Math.random() * 40 - 20)}px)`;
-  }, 60000);
-  $('#aodDica').style.opacity = 1;
-  setTimeout(() => $('#aodDica').style.opacity = 0, 3000);
-}
+// move o relógio um pouquinho a cada minuto para não marcar a tela (burn-in)
+setInterval(() => {
+  $('#aodConteudo').style.transform = `translate(${Math.round(Math.random() * 30 - 15)}px, ${Math.round(Math.random() * 40 - 20)}px)`;
+}, 60000);
 
-function fecharAOD() {
-  $('#aod').hidden = true;
-  clearInterval(aod.tick); clearInterval(aod.mover);
-  manterTelaLigada(false);
-  if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
-}
-
-$('#btnRelogio').onclick = () => abrirAOD();
-$('#aodSair').onclick = e => { e.stopPropagation(); fecharAOD(); };
-$('#aod').addEventListener('click', () => {
-  aod.estilo = ESTILOS[(ESTILOS.indexOf(aod.estilo) + 1) % ESTILOS.length];
-  guardar('sd_estilo', aod.estilo);
+$('#telaRelogio').addEventListener('click', e => {
+  if (e.target.closest('button')) return;
   vibrar(8);
-  montarRelogio();
+  trocarEstilo(ESTILOS[(ESTILOS.indexOf(estilo) + 1) % ESTILOS.length]);
+  menuApagado(true);
+  manterTelaLigada(true);
 });
 
+$('#btnTelaCheia').onclick = () => {
+  if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
+  else document.documentElement.requestFullscreen?.({ navigationUI: 'hide' }).catch(() => {});
+};
+
+let trava = null;
 async function manterTelaLigada(ligar) {
   const video = $('#acordado');
   if (ligar) {
     try {
-      if ('wakeLock' in navigator) { aod.trava = await navigator.wakeLock.request('screen'); return; }
+      if ('wakeLock' in navigator) { trava ??= await navigator.wakeLock.request('screen'); return; }
     } catch {}
     // sem Wake Lock (página em http): um vídeo mudo em loop mantém a tela acesa
     video.play().catch(() => {});
   } else {
-    aod.trava?.release().catch(() => {}); aod.trava = null;
+    trava?.release().catch(() => {}); trava = null;
     video.pause();
   }
 }
 
 document.addEventListener('visibilitychange', () => {
-  if (!document.hidden && !$('#aod').hidden) manterTelaLigada(true);
+  if (!document.hidden && estado.tela === TELA.relogio) { trava = null; manterTelaLigada(true); }
 });
+// o navegador só deixa o vídeo tocar depois do primeiro toque
+document.addEventListener('pointerdown', () => { if (estado.tela === TELA.relogio) manterTelaLigada(true); }, { once: true });
 
 // ------------------------------------------------------------ início
 
+trocarEstilo(estilo);
+setTimeout(() => $('#aodDica').style.opacity = 0, 5000);
+estado.tela = -1; mudouTela(TELA.relogio); // sempre abre no relógio
 conectar();

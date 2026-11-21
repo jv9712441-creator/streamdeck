@@ -1,29 +1,46 @@
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-html, body { margin: 0; height: 100%; background: #000; color: #e5e7eb; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-body { display: flex; flex-direction: column; padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); user-select: none; -webkit-user-select: none; overscroll-behavior: none; }
+html, body { margin: 0; height: 100%; background: #000; color: #e5e7eb; font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; overflow: hidden; }
+body { display: flex; flex-direction: column; padding: env(safe-area-inset-top) env(safe-area-inset-right) 0 env(safe-area-inset-left); user-select: none; -webkit-user-select: none; overscroll-behavior: none; }
 button { font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
 [hidden] { display: none !important; }
 
-/* topo */
+/* telas lado a lado, deslizando */
+#telas { flex: 1; min-height: 0; display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain; }
+#telas::-webkit-scrollbar { display: none; }
+.tela-app { flex: 0 0 100%; width: 100%; min-width: 0; height: 100%; scroll-snap-align: start; scroll-snap-stop: always; display: flex; flex-direction: column; position: relative; }
+
+/* barra de navegação */
+#menu { display: flex; justify-content: space-around; border-top: 1px solid #1f2937; padding: 4px 0 calc(4px + env(safe-area-inset-bottom)); transition: opacity .4s; background: #000; }
+#menu button { font-size: 22px; padding: 6px 14px; border-radius: 12px; position: relative; opacity: .45; transition: opacity .2s, background .2s; }
+#menu button.ativo { opacity: 1; background: #111827; }
+#menu.apagado { opacity: .15; }
+.badge { position: absolute; top: 0; right: 4px; background: #ef4444; color: #fff; font-size: 10px; min-width: 16px; height: 16px; border-radius: 8px; display: grid; place-items: center; padding: 0 3px; font-style: normal; }
+#badgePC { background: #2563eb; }
+
+/* cabeçalho das telas de lista */
+.cabeca { display: flex; align-items: center; gap: 8px; padding: 12px 14px; border-bottom: 1px solid #1f2937; }
+.cabeca h2 { margin: 0; flex: 1; font-size: 18px; }
+.cabeca button { color: #9ca3af; padding: 4px 8px; }
+.lista { flex: 1; overflow-y: auto; padding: 10px 12px; }
+.subtitulo { font-size: 12px; color: #6b7280; text-transform: uppercase; letter-spacing: 1px; margin: 18px 4px 8px; }
+.vazio { color: #6b7280; text-align: center; margin: 40px 20px; line-height: 1.5; }
+
+/* tela de botões */
 #topo { display: flex; flex-direction: column; gap: 6px; padding: 6px 10px 8px; border-bottom: 1px solid #1f2937; }
 #abas { display: flex; gap: 6px; overflow-x: auto; scrollbar-width: none; }
 #abas::-webkit-scrollbar { display: none; }
 #abas button { padding: 6px 12px; border-radius: 999px; background: #111827; white-space: nowrap; font-size: 14px; }
 #abas button.ativa { background: #e5e7eb; color: #000; }
 #barra { display: flex; align-items: center; gap: 4px; }
-#uso { flex: 1; margin-left: 4px; }
-#barra button { font-size: 18px; padding: 4px 6px; position: relative; }
+#barra button { font-size: 18px; padding: 4px 6px; }
 #status { color: #ef4444; font-size: 12px; }
 #status.on { color: #22c55e; }
-#uso { font-size: 11px; color: #9ca3af; font-variant-numeric: tabular-nums; white-space: nowrap; }
-#contador { position: absolute; top: -2px; right: -2px; background: #ef4444; color: #fff; font-size: 10px; min-width: 16px; height: 16px; border-radius: 8px; display: grid; place-items: center; padding: 0 3px; }
+#uso { flex: 1; margin-left: 4px; font-size: 11px; color: #9ca3af; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
 #editarBarra { display: flex; align-items: center; gap: 12px; padding: 8px 12px; background: #1e293b; font-size: 13px; }
 #editarBarra button { background: #334155; border-radius: 6px; padding: 2px 10px; }
 #editarBarra label { display: flex; align-items: center; gap: 6px; }
-#editarBarra #btnPaginaConfig { margin-left: auto; }
 
-/* grade de botões */
 #grade { flex: 1; min-height: 0; overflow-y: auto; display: grid; grid-template-columns: repeat(var(--colunas, 3), var(--lado, 1fr)); grid-auto-rows: var(--lado, 110px); gap: 10px; padding: 12px; align-content: start; justify-content: center; }
 .tecla { border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; padding: 6px; text-align: center; transition: transform .08s, filter .08s; position: relative; overflow: hidden; }
 .tecla:active { transform: scale(.94); filter: brightness(1.3); }
@@ -36,7 +53,30 @@ button { font: inherit; color: inherit; background: none; border: 0; cursor: poi
 .tecla.nova { background: #111827; color: #6b7280; font-size: 34px; }
 @keyframes pisca { to { background: #fff0; } }
 
-/* telas, painéis, modais */
+/* cartões de notificação e pedido */
+.notif, .cartao { background: #111827; border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; }
+.notif .meta { font-size: 11px; color: #9ca3af; display: flex; justify-content: space-between; gap: 8px; }
+.notif h3 { margin: 4px 0; font-size: 15px; }
+.notif p { margin: 0; font-size: 13px; color: #d1d5db; white-space: pre-wrap; word-break: break-word; max-height: 8em; overflow: hidden; }
+.st-permitido { color: #22c55e; } .st-negado { color: #ef4444; } .st-expirado, .st-no-pc { color: #9ca3af; }
+
+.pedido { background: #0f172a; border: 2px solid #facc15; border-radius: 16px; padding: 14px; margin-bottom: 12px; display: flex; flex-direction: column; gap: 10px; }
+.pedido h3 { margin: 0; font-size: 18px; }
+.pedido pre { margin: 0; background: #020617; padding: 10px; border-radius: 8px; white-space: pre-wrap; word-break: break-word; font-size: 12px; max-height: 34vh; overflow-y: auto; user-select: text; -webkit-user-select: text; }
+.pedido .tempo { font-size: 12px; color: #9ca3af; }
+.pedido .linha button { padding: 16px; font-size: 17px; }
+.pedido .link { align-self: center; }
+
+.cartao h3 { margin: 2px 0 8px; font-size: 15px; }
+.cartao p { margin: 0 0 10px; color: #d1d5db; font-size: 14px; }
+.cartao button { width: 100%; margin-top: 6px; }
+.medidor { display: flex; align-items: center; gap: 10px; margin: 8px 0; font-size: 13px; color: #9ca3af; }
+.medidor span { width: 34px; }
+.medidor b { width: 42px; text-align: right; color: #e5e7eb; font-variant-numeric: tabular-nums; }
+.trilho { flex: 1; height: 10px; background: #1f2937; border-radius: 5px; overflow: hidden; }
+.trilho i { display: block; height: 100%; width: 0; background: #22c55e; transition: width .6s, background .6s; }
+
+/* formulários e botões */
 .tela { position: fixed; inset: 0; background: #000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 24px; text-align: center; z-index: 30; }
 .tela p { color: #9ca3af; max-width: 340px; }
 code { background: #1f2937; padding: 1px 6px; border-radius: 4px; }
@@ -45,54 +85,37 @@ textarea { min-height: 120px; resize: vertical; }
 .primario, .sucesso, .perigo, .neutro { padding: 12px 18px; border-radius: 10px; font-weight: 600; }
 .primario { background: #2563eb; } .sucesso { background: #16a34a; } .perigo { background: #b91c1c; } .neutro { background: #374151; }
 .link { color: #9ca3af; text-decoration: underline; padding: 8px; }
-
-.painel { position: fixed; inset: 0; background: #000; z-index: 40; display: flex; flex-direction: column; }
-.painel header { display: flex; align-items: center; gap: 8px; padding: 12px; border-bottom: 1px solid #1f2937; }
-.painel h2 { margin: 0; flex: 1; font-size: 18px; }
-.painel header button { padding: 6px 10px; }
-#listaNotifs { overflow-y: auto; padding: 8px 12px; flex: 1; }
-.notif { background: #111827; border-radius: 12px; padding: 10px 12px; margin-bottom: 8px; }
-.notif .meta { font-size: 11px; color: #9ca3af; display: flex; justify-content: space-between; }
-.notif h3 { margin: 4px 0; font-size: 15px; }
-.notif p { margin: 0; font-size: 13px; color: #d1d5db; white-space: pre-wrap; word-break: break-word; max-height: 8em; overflow: hidden; }
-.notif .linha { margin-top: 8px; }
-.notif .linha button { padding: 8px; font-size: 14px; }
-.vazio { color: #6b7280; text-align: center; margin-top: 40px; }
-.st-permitido { color: #22c55e; } .st-negado { color: #ef4444; } .st-expirado, .st-no-pc { color: #9ca3af; } .st-pendente { color: #facc15; }
+.linha { display: flex; gap: 10px; }
+.linha > * { flex: 1; }
+.etiqueta { align-self: flex-start; background: #312e81; color: #c7d2fe; font-size: 11px; padding: 3px 8px; border-radius: 999px; font-weight: 600; }
+.dica { font-size: 12px; color: #6b7280; margin: -6px 0 0; }
 
 .modal { position: fixed; inset: 0; background: #000c; z-index: 60; display: flex; align-items: flex-end; justify-content: center; }
-.caixa { background: #0f172a; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; border-radius: 18px 18px 0 0; padding: 18px; display: flex; flex-direction: column; gap: 12px; }
+.caixa { background: #0f172a; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; border-radius: 18px 18px 0 0; padding: 18px 18px calc(18px + env(safe-area-inset-bottom)); display: flex; flex-direction: column; gap: 12px; }
 .caixa h2 { margin: 0; font-size: 18px; }
 .caixa pre { margin: 0; background: #020617; padding: 10px; border-radius: 8px; white-space: pre-wrap; word-break: break-word; font-size: 12px; max-height: 40vh; overflow-y: auto; user-select: text; -webkit-user-select: text; }
 .caixa label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: #9ca3af; }
 .caixa label.check { flex-direction: row; align-items: center; gap: 8px; }
 .caixa label.check input { width: auto; }
-.linha { display: flex; gap: 10px; }
-.linha > * { flex: 1; }
-.etiqueta { align-self: flex-start; background: #312e81; color: #c7d2fe; font-size: 11px; padding: 3px 8px; border-radius: 999px; font-weight: 600; }
-#pedido .caixa { border: 2px solid #facc15; }
-#pedido .linha button { padding: 16px; font-size: 17px; }
-#pedidoTempo { font-size: 12px; color: #9ca3af; }
-.dica { font-size: 12px; color: #6b7280; margin: -6px 0 0; }
 
-#aviso { position: fixed; left: 50%; bottom: calc(20px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: #1f2937; padding: 10px 16px; border-radius: 10px; z-index: 80; font-size: 14px; max-width: 90vw; }
+#aviso { position: fixed; left: 50%; bottom: calc(76px + env(safe-area-inset-bottom)); transform: translateX(-50%); background: #1f2937; padding: 10px 16px; border-radius: 10px; z-index: 80; font-size: 14px; max-width: 90vw; }
 #aviso.erro { background: #7f1d1d; }
 
 #acordado { position: fixed; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 
-/* relógio / always on display */
-#aod { position: fixed; inset: 0; background: #000; z-index: 50; display: flex; align-items: center; justify-content: center; color: #d4d4d8; }
+/* relógio */
+#telaRelogio { align-items: center; justify-content: center; color: #d4d4d8; }
 #aodConteudo { display: flex; flex-direction: column; align-items: center; gap: 10px; transition: transform 2s; }
 #aodData { font-size: 18px; color: #71717a; }
 #aodInfo { font-size: 13px; color: #52525b; font-variant-numeric: tabular-nums; }
 #aodInfo .alerta { color: #facc15; }
-#aodDica { position: absolute; bottom: 24px; font-size: 12px; color: #3f3f46; transition: opacity 1s; }
-#aodSair { position: absolute; top: calc(12px + env(safe-area-inset-top)); right: 14px; color: #3f3f46; font-size: 22px; padding: 8px; }
+#aodDica { position: absolute; bottom: 16px; font-size: 12px; color: #3f3f46; transition: opacity 1s; text-align: center; }
+#btnTelaCheia { position: absolute; top: 10px; right: 12px; color: #3f3f46; font-size: 20px; padding: 8px; }
 
 .rel-digital { font-size: clamp(64px, 24vw, 180px); font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -2px; line-height: 1; }
 .rel-digital small { font-size: .3em; color: #52525b; margin-left: 4px; }
 .rel-minimal { font-size: clamp(72px, 28vw, 220px); font-weight: 200; font-variant-numeric: tabular-nums; line-height: 1; }
-.rel-analogico svg { width: min(70vw, 60vh); height: min(70vw, 60vh); }
+.rel-analogico svg { width: min(70vw, 55vh); height: min(70vw, 55vh); }
 .rel-palavras { font-size: clamp(28px, 9vw, 64px); font-weight: 300; text-align: center; max-width: 90vw; line-height: 1.2; }
 .rel-palavras b { color: #fafafa; font-weight: 600; }
 .rel-pomodoro { display: flex; flex-direction: column; align-items: center; gap: 14px; }
@@ -100,11 +123,6 @@ textarea { min-height: 120px; resize: vertical; }
 .rel-pomodoro .fase.pausa { color: #22c55e; }
 .rel-pomodoro .tempo { font-size: clamp(72px, 26vw, 200px); font-weight: 300; font-variant-numeric: tabular-nums; line-height: 1; }
 .rel-pomodoro .linha button { background: #18181b; color: #a1a1aa; padding: 10px 18px; border-radius: 10px; }
-#pedido { z-index: 70; }
-
-#atualizar { background: #1d4ed8; color: #fff; padding: 8px 12px; font-size: 13px; font-weight: 600; text-align: left; }
-#btnVersao { margin-left: auto; color: #94a3b8; }
-#editarBarra #btnPaginaConfig { margin-left: 0; }
 
 /* celular deitado */
 @media (orientation: landscape) and (max-height: 560px) {
@@ -116,17 +134,21 @@ textarea { min-height: 120px; resize: vertical; }
   .tecla { border-radius: 12px; gap: 3px; }
   .tecla .nome { font-size: 11px; }
   #editarBarra { padding: 4px 12px; }
-  .rel-digital { font-size: min(24vw, 44vh); }
-  .rel-minimal { font-size: min(28vw, 50vh); }
-  .rel-palavras { font-size: min(9vw, 13vh); }
-  .rel-analogico svg { width: 62vh; height: 62vh; }
+  #menu { padding-top: 2px; padding-bottom: calc(2px + env(safe-area-inset-bottom)); }
+  #menu button { font-size: 18px; padding: 3px 14px; }
+  .cabeca { padding: 6px 14px; }
+  .lista { padding: 8px 12px; }
+  .pedido pre { max-height: 22vh; }
+  .pedido .linha button { padding: 10px; }
+  .rel-digital { font-size: min(24vw, 40vh); }
+  .rel-minimal { font-size: min(28vw, 46vh); }
+  .rel-palavras { font-size: min(9vw, 12vh); }
+  .rel-analogico svg { width: 56vh; height: 56vh; }
   .rel-pomodoro { gap: 6px; }
-  .rel-pomodoro .tempo { font-size: min(26vw, 40vh); }
+  .rel-pomodoro .tempo { font-size: min(26vw, 36vh); }
   .rel-pomodoro .linha button { padding: 6px 14px; }
   #aodConteudo { gap: 4px; }
   #aodData { font-size: 15px; }
   #aodDica { display: none; }
   .caixa { max-height: 96vh; padding: 12px 16px; gap: 8px; }
-  .caixa pre { max-height: 26vh; }
-  #pedido .linha button { padding: 10px; }
 }

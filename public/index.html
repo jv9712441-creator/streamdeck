@@ -14,26 +14,83 @@
 </head>
 <body>
 
-<header id="topo">
-  <div id="barra">
-    <span id="status" title="Conexão">●</span>
-    <span id="uso"></span>
-    <button id="btnNotifs" aria-label="Notificações">🔔<b id="contador" hidden></b></button>
-    <button id="btnRelogio" aria-label="Modo relógio">🕐</button>
-    <button id="btnEditar" aria-label="Editar botões">✏️</button>
-  </div>
-  <nav id="abas"></nav>
-</header>
-<button id="atualizar" hidden></button>
+<div id="telas">
 
-<div id="editarBarra" hidden>
-  <span>Editando</span>
-  <label>Colunas <button data-col="-1">−</button><b id="numColunas">3</b><button data-col="1">+</button></label>
-  <button id="btnPaginaConfig">Página…</button>
-  <button id="btnVersao">v?</button>
+  <!-- 1. Relógio -->
+  <section class="tela-app" id="telaRelogio" data-nome="relogio">
+    <div id="aodConteudo">
+      <div id="aodRelogio"></div>
+      <div id="aodData"></div>
+      <div id="aodInfo"></div>
+    </div>
+    <div id="aodDica">toque para trocar o estilo · deslize para os botões</div>
+    <button id="btnTelaCheia" aria-label="Tela cheia">⛶</button>
+  </section>
+
+  <!-- 2. Botões -->
+  <section class="tela-app" id="telaBotoes" data-nome="botoes">
+    <header id="topo">
+      <div id="barra">
+        <span id="status" title="Conexão">●</span>
+        <span id="uso"></span>
+        <button id="btnEditar" aria-label="Editar botões">✏️</button>
+      </div>
+      <nav id="abas"></nav>
+    </header>
+    <div id="editarBarra" hidden>
+      <span>Editando</span>
+      <label>Colunas <button data-col="-1">−</button><b id="numColunas">3</b><button data-col="1">+</button></label>
+      <button id="btnPaginaConfig">Página…</button>
+    </div>
+    <main id="grade"></main>
+  </section>
+
+  <!-- 3. Notificações -->
+  <section class="tela-app" id="telaNotifs" data-nome="notificacoes">
+    <header class="cabeca"><h2>Notificações</h2><button id="btnLimparNotifs">Limpar</button></header>
+    <div id="listaNotifs" class="lista"></div>
+  </section>
+
+  <!-- 4. Permissões -->
+  <section class="tela-app" id="telaPermissoes" data-nome="permissoes">
+    <header class="cabeca"><h2>Permissões</h2><button id="btnLimparPedidos">Limpar</button></header>
+    <div class="lista">
+      <div id="pendentes"></div>
+      <h3 class="subtitulo" id="tituloRespondidos" hidden>Respondidos</h3>
+      <div id="respondidos"></div>
+    </div>
+  </section>
+
+  <!-- 5. PC -->
+  <section class="tela-app" id="telaPC" data-nome="pc">
+    <header class="cabeca"><h2 id="nomePC">PC</h2></header>
+    <div class="lista">
+      <div class="cartao">
+        <div class="medidor"><span>CPU</span><div class="trilho"><i id="barraCpu"></i></div><b id="valorCpu">–</b></div>
+        <div class="medidor"><span>RAM</span><div class="trilho"><i id="barraRam"></i></div><b id="valorRam">–</b></div>
+        <p class="dica" id="infoPC"></p>
+      </div>
+      <div class="cartao">
+        <h3>Atualização</h3>
+        <p id="textoVersao">–</p>
+        <button id="btnAtualizar" class="primario" hidden>Atualizar agora</button>
+        <button id="btnProcurar" class="neutro">Procurar atualização</button>
+      </div>
+      <div class="cartao">
+        <h3>Este celular</h3>
+        <button id="btnDesparear" class="perigo">Desconectar do PC</button>
+      </div>
+    </div>
+  </section>
 </div>
 
-<main id="grade"></main>
+<nav id="menu">
+  <button data-ir="0" aria-label="Relógio">🕐</button>
+  <button data-ir="1" aria-label="Botões">🎛️</button>
+  <button data-ir="2" aria-label="Notificações">🔔<b class="badge" id="badgeNotifs" hidden></b></button>
+  <button data-ir="3" aria-label="Permissões">🛡️<b class="badge" id="badgePedidos" hidden></b></button>
+  <button data-ir="4" aria-label="PC">💻<b class="badge" id="badgePC" hidden>1</b></button>
+</nav>
 
 <!-- Sem pareamento -->
 <section id="parear" class="tela" hidden>
@@ -44,39 +101,7 @@
   <button id="btnSalvarToken" class="primario">Conectar</button>
 </section>
 
-<!-- Modo relógio (Always On Display) -->
-<section id="aod" hidden>
-  <div id="aodConteudo">
-    <div id="aodRelogio"></div>
-    <div id="aodData"></div>
-    <div id="aodInfo"></div>
-  </div>
-  <div id="aodDica">toque para trocar o estilo</div>
-  <button id="aodSair" aria-label="Sair do relógio">✕</button>
-</section>
-
-<!-- Painel de notificações -->
-<section id="painelNotifs" class="painel" hidden>
-  <header><h2>Notificações</h2><button id="btnLimpar">Limpar</button><button data-fechar>✕</button></header>
-  <div id="listaNotifs"></div>
-</section>
-
-<!-- Pedido de permissão -->
-<section id="pedido" class="modal" hidden>
-  <div class="caixa">
-    <div id="pedidoOrigem" class="etiqueta"></div>
-    <h2 id="pedidoTitulo"></h2>
-    <pre id="pedidoMensagem"></pre>
-    <div id="pedidoTempo"></div>
-    <div class="linha">
-      <button id="btnNegar" class="perigo">Negar</button>
-      <button id="btnPermitir" class="sucesso">Permitir</button>
-    </div>
-    <button id="btnNoPC" class="link">Responder no PC</button>
-  </div>
-</section>
-
-<!-- Modal genérico (texto, saída de comando, editor) -->
+<!-- Modal genérico (texto, saída de comando, editor, confirmação) -->
 <section id="modal" class="modal" hidden>
   <div class="caixa" id="modalCaixa"></div>
 </section>

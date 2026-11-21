@@ -56,7 +56,14 @@ const VERSAO = JSON.parse(fs.readFileSync(path.join(RAIZ, 'versao.json'), 'utf8'
 
 function configPublica() {
   return { paginas: cfg.paginas, colunas: cfg.colunas, colunasDeitado: cfg.colunasDeitado || 0,
-    nomePC: os.hostname(), plataforma: process.platform, versao: VERSAO };
+    nomePC: os.hostname(), plataforma: process.platform, versao: VERSAO,
+    obs: { host: cfg.obs?.host || '127.0.0.1', porta: cfg.obs?.porta || 4455, temSenha: !!cfg.obs?.senha } };
+}
+
+function acharBotaoPorNome(nome) {
+  const n = nome.toLowerCase();
+  for (const p of cfg.paginas) for (const b of p.botoes) if (String(b.nome).trim().toLowerCase() === n) return b;
+  return null;
 }
 
 function acharBotao(id) {
@@ -139,7 +146,10 @@ setInterval(() => {
 // ---------------------------------------------------------------- execução de ações no PC
 
 function psAspas(s) { return "'" + String(s).replace(/'/g, "''") + "'"; }
-function expandirVariaveis(s) { return String(s).replace(/%([^%]+)%/g, (m, v) => process.env[v] ?? m); }
+function expandirVariaveis(s) {
+  return String(s).replace(/%([^%]+)%/g, (m, v) => v.toUpperCase() === 'STREAMDECK' ? RAIZ : (process.env[v] ?? m));
+}
+const SEM_CAMINHO = 'Esse botão ainda não foi configurado. Toque no ✏️ e coloque o programa ou site.';
 
 function rodarPowerShell(script, tempoMs = 30000) {
   return new Promise(resolve => {
@@ -197,11 +207,13 @@ async function executar(b, extra = {}) {
   const a = b.acao || {};
   switch (a.tipo) {
     case 'app': {
-      const alvo = expandirVariaveis(a.caminho || '');
-      if (!alvo) throw new Error('Botão sem caminho configurado');
+      const alvo = expandirVariaveis(a.caminho || '').trim();
+      if (!alvo) throw new Error(SEM_CAMINHO);
       if (WINDOWS) {
         let s = `Start-Process -FilePath ${psAspas(alvo)}`;
         if (a.argumentos) s += ` -ArgumentList ${psAspas(expandirVariaveis(a.argumentos))}`;
+        // programas como o OBS só abrem direito se rodarem de dentro da própria pasta
+        if (/^[a-z]:\\/i.test(alvo) && /\.exe$/i.test(alvo)) s += ` -WorkingDirectory ${psAspas(path.dirname(alvo))}`;
         const r = await rodarPowerShell(s, 15000);
         if (r.codigo !== 0) throw new Error(r.saida.trim() || 'Não consegui abrir');
       } else {
@@ -235,10 +247,160 @@ async function executar(b, extra = {}) {
       const r = await rodarPowerShell(`$c = Get-Clipboard -Raw; if ($c -eq $null) { $c = '' }; [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($c))`);
       return { ok: true, texto: Buffer.from(r.saida.trim(), 'base64').toString('utf8') };
     }
+    case 'sequencia': {
+      // roda outros botões em ordem (os "modos"), pelo nome
+      const nomes = String(a.botoes || '').split(/\n|,/).map(s => s.trim()).filter(Boolean);
+      if (!nomes.length) throw new Error('Sequência vazia. Toque no ✏️ e liste os botões, um por linha.');
+      const falhas = [];
+      for (const nome of nomes) {
+        const alvo = acharBotaoPorNome(nome);
+        if (!alvo) { falhas.push(`${nome}: não achei esse botão`); continue; }
+        if (['sequencia', 'pagina', 'relogio', 'texto-pc', 'clipboard-pc'].includes(alvo.acao?.tipo)) continue;
+        try {
+          const r = await executar(alvo);
+          if (r.ok === false) falhas.push(`${nome}: ${(r.saida || 'falhou').trim().slice(0, 120)}`);
+        } catch (e) { falhas.push(`${nome}: ${e.message}`); }
+        await new Promise(r => setTimeout(r, Number(a.intervalo) || 700));
+      }
+      return falhas.length ? { ok: false, erro: `${nomes.length - falhas.length} de ${nomes.length} abriram`, saida: falhas.join('\n') } : { ok: true };
+    }
+    case 'obs':
+      return { ok: true, aviso: await comandoOBS(a.comando, a.alvo) };
+    case 'microfone': {
+      if (!WINDOWS) throw new Error('Controle do microfone só no Windows');
+      const modo = ['mutar', 'desmutar'].includes(a.modo) ? a.modo : 'alternar';
+      const r = await rodarPowerShell(`& ${psAspas(path.join(RAIZ, 'ferramentas', 'microfone.ps1'))} -Modo ${modo}`);
+      const estadoMic = r.saida.trim().split(/\s+/).pop();
+      if (r.codigo !== 0 || !['mudo', 'ativo'].includes(estadoMic)) throw new Error('Não consegui mexer no microfone: ' + r.saida.trim().slice(0, 200));
+      return { ok: true, aviso: estadoMic === 'mudo' ? '🎙️ Microfone mudo' : '🎙️ Microfone ligado' };
+    }
     default:
       throw new Error(`Tipo de ação desconhecido: ${a.tipo}`);
   }
 }
+
+// ---------------------------------------------------------------- OBS Studio (obs-websocket 5, já vem no OBS 28 ou mais novo)
+// No OBS: Ferramentas → Configurações do servidor WebSocket → Ativar. A senha vai na tela 💻 do celular.
+
+let obs = null; // { ws, pronto: Promise, pedidos: Map }
+
+function conectarOBS() {
+  if (obs?.ws.readyState === 1 && obs.ok) return obs.pronto;
+  try { obs?.ws.close(); } catch {}
+  const o = cfg.obs || {};
+  const ws = new WebSocket(`ws://${o.host || '127.0.0.1'}:${o.porta || 4455}`);
+  const pedidos = new Map();
+  const atual = { ws, pedidos, ok: false };
+  atual.pronto = new Promise((resolve, reject) => {
+    const t = setTimeout(() => { reject(new Error('O OBS não respondeu. Ele está aberto?')); try { ws.close(); } catch {} }, 5000);
+    ws.onerror = () => { clearTimeout(t); reject(new Error('Não achei o OBS. Abra o OBS e ligue o servidor WebSocket (Ferramentas → Configurações do servidor WebSocket).')); };
+    ws.onclose = ev => {
+      clearTimeout(t);
+      atual.ok = false;
+      if (ev.code === 4009) reject(new Error('Senha do OBS errada. Confira na tela 💻 do celular.'));
+      else reject(new Error('A conexão com o OBS caiu.'));
+      for (const [, p] of pedidos) p.reject(new Error('A conexão com o OBS caiu.'));
+      pedidos.clear();
+    };
+    ws.onmessage = ev => {
+      let m; try { m = JSON.parse(ev.data); } catch { return; }
+      if (m.op === 0) { // Hello
+        const ident = { rpcVersion: 1, eventSubscriptions: 0 };
+        const auth = m.d.authentication;
+        if (auth) {
+          const segredo = crypto.createHash('sha256').update((o.senha || '') + auth.salt).digest('base64');
+          ident.authentication = crypto.createHash('sha256').update(segredo + auth.challenge).digest('base64');
+        }
+        ws.send(JSON.stringify({ op: 1, d: ident }));
+      } else if (m.op === 2) { // Identified
+        clearTimeout(t); atual.ok = true; resolve();
+      } else if (m.op === 7) { // resposta de um pedido
+        const p = pedidos.get(m.d.requestId);
+        if (!p) return;
+        pedidos.delete(m.d.requestId);
+        if (m.d.requestStatus.result) p.resolve(m.d.responseData || {});
+        else p.reject(new Error(traduzirErroOBS(m.d.requestStatus)));
+      }
+    };
+  });
+  atual.pronto.catch(() => {});
+  obs = atual;
+  return atual.pronto;
+}
+
+function traduzirErroOBS(st) {
+  const c = st.comment || '';
+  if (st.code === 501) return 'O OBS não está gravando/transmitindo agora.';
+  if (st.code === 500) return 'Isso já está ligado no OBS.';
+  if (st.code === 600) return `O OBS não achou "${c.match(/"([^"]+)"/)?.[1] || 'essa fonte ou cena'}". Confira o nome no ✏️.`;
+  return 'OBS: ' + (c || 'erro ' + st.code);
+}
+
+async function pedirOBS(tipo, dados) {
+  await conectarOBS();
+  const id = novoId();
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => { obs.pedidos.delete(id); reject(new Error('O OBS demorou para responder.')); }, 8000);
+    obs.pedidos.set(id, { resolve: v => { clearTimeout(t); resolve(v); }, reject: e => { clearTimeout(t); reject(e); } });
+    obs.ws.send(JSON.stringify({ op: 6, d: { requestType: tipo, requestId: id, requestData: dados } }));
+  });
+}
+
+const COMANDOS_OBS = {
+  'iniciar-live': ['StartStream', '🔴 Transmissão iniciada'],
+  'parar-live': ['StopStream', '⏹️ Transmissão encerrada'],
+  'iniciar-gravacao': ['StartRecord', '⏺️ Gravando'],
+  'parar-gravacao': ['StopRecord', '⏹️ Gravação salva'],
+  'pausar-gravacao': ['ToggleRecordPause', '⏯️ Gravação pausada/retomada'],
+  'salvar-replay': ['SaveReplayBuffer', '💾 Replay salvo'],
+};
+
+async function comandoOBS(comando, alvo) {
+  if (COMANDOS_OBS[comando]) { await pedirOBS(COMANDOS_OBS[comando][0]); return COMANDOS_OBS[comando][1]; }
+  switch (comando) {
+    case 'alternar-live': { const r = await pedirOBS('ToggleStream'); return r.outputActive ? '🔴 Transmissão iniciada' : '⏹️ Transmissão encerrada'; }
+    case 'alternar-gravacao': { const r = await pedirOBS('ToggleRecord'); return r.outputActive ? '⏺️ Gravando' : '⏹️ Gravação salva'; }
+    case 'cena':
+      if (!alvo) throw new Error('Coloque o nome da cena no ✏️.');
+      await pedirOBS('SetCurrentProgramScene', { sceneName: alvo }); return `🎬 Cena: ${alvo}`;
+    case 'proxima-cena': {
+      const r = await pedirOBS('GetSceneList');
+      const nomes = (r.scenes || []).sort((a, b) => b.sceneIndex - a.sceneIndex).map(c => c.sceneName); // ordem da lista do OBS
+      if (!nomes.length) throw new Error('O OBS não tem cenas.');
+      const prox = nomes[(nomes.indexOf(r.currentProgramSceneName) + 1) % nomes.length];
+      await pedirOBS('SetCurrentProgramScene', { sceneName: prox }); return `🎬 Cena: ${prox}`;
+    }
+    case 'mutar': {
+      const nome = alvo || 'Mic/Aux';
+      const r = await pedirOBS('ToggleInputMute', { inputName: nome });
+      return r.inputMuted ? `🔇 ${nome} mudo` : `🎙️ ${nome} ligado`;
+    }
+    case 'alternar-fonte': {
+      if (!alvo) throw new Error('Coloque o nome da fonte (ex.: a câmera) no ✏️.');
+      const { currentProgramSceneName: cena } = await pedirOBS('GetCurrentProgramScene');
+      const { sceneItemId } = await pedirOBS('GetSceneItemId', { sceneName: cena, sourceName: alvo });
+      const { sceneItemEnabled } = await pedirOBS('GetSceneItemEnabled', { sceneName: cena, sceneItemId });
+      await pedirOBS('SetSceneItemEnabled', { sceneName: cena, sceneItemId, sceneItemEnabled: !sceneItemEnabled });
+      return `${sceneItemEnabled ? '🙈' : '👁️'} ${alvo} ${sceneItemEnabled ? 'escondida' : 'aparecendo'}`;
+    }
+    default: throw new Error('Comando do OBS desconhecido: ' + comando);
+  }
+}
+
+// ---------------------------------------------------------------- checklist do END SESSION (fica na pasta, você edita à vontade)
+
+const CHECKLIST = path.join(RAIZ, 'checklist.txt');
+if (!fs.existsSync(CHECKLIST)) fs.writeFileSync(CHECKLIST, [
+  'CHECKLIST DE ENCERRAMENTO',
+  '(edite à vontade: este arquivo é seu e as atualizações não mexem nele)',
+  '',
+  '[ ] Commit e push do que foi feito hoje',
+  '[ ] Responder clientes pendentes (Instagram / WhatsApp / e-mail)',
+  '[ ] Anotar o que ficou para amanhã',
+  '[ ] Conferir o Sancoto',
+  '[ ] Fechar o que não vai usar',
+  '',
+].join('\r\n'));
 
 // ---------------------------------------------------------------- espelho das notificações do Windows (experimental)
 // Lê o banco onde o próprio Windows guarda as notificações e repassa as novas para o celular.
@@ -376,7 +538,7 @@ function reiniciar() {
 // ---------------------------------------------------------------- HTTP
 
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
-  '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml', '.png': 'image/png', '.mp4': 'video/mp4' };
+  '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml', '.png': 'image/png', '.mp4': 'video/mp4', '.woff2': 'font/woff2', '.txt': 'text/plain; charset=utf-8' };
 
 function json(res, codigo, dados) {
   res.writeHead(codigo, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
@@ -503,6 +665,32 @@ const servidor = http.createServer(async (req, res) => {
     }
 
     if (rota === '/api/atualizacao') return json(res, 200, await verificarAtualizacao());
+
+    if (rota === '/api/obs') {
+      // salva a conexão com o OBS (a senha só é trocada se vier preenchida) e testa
+      cfg.obs ??= {};
+      if (corpo.host) cfg.obs.host = String(corpo.host).trim();
+      if (corpo.porta) cfg.obs.porta = Math.max(1, Math.min(65535, +corpo.porta || 4455));
+      if (typeof corpo.senha === 'string' && corpo.senha !== '') cfg.obs.senha = corpo.senha;
+      if (corpo.apagarSenha) cfg.obs.senha = '';
+      salvarConfig(cfg);
+      try { obs?.ws.close(); } catch {}
+      obs = null;
+      try {
+        const v = await pedirOBS('GetVersion');
+        return json(res, 200, { ok: true, versao: v.obsVersion });
+      } catch (e) { return json(res, 200, { ok: false, erro: e.message }); }
+    }
+
+    if (rota === '/api/restaurar-paginas') {
+      const padrao = JSON.parse(fs.readFileSync(CONFIG_PADRAO, 'utf8'));
+      cfg.paginas = padrao.paginas;
+      garantirIds(cfg);
+      salvarConfig(cfg);
+      enviar('config', configPublica());
+      log('📄 Páginas de botões trocadas pelas do padrão');
+      return json(res, 200, { ok: true });
+    }
 
     if (rota === '/api/atualizar') {
       try {

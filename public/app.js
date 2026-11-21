@@ -225,7 +225,8 @@ async function apertar(b, el) {
     const r = await api('acao', { id: b.id, ...extra });
     marcar(el, r.ok);
     if (!r.ok) aviso(r.erro || 'Não deu certo', true);
-    if (r.saida) mostrarTexto(b.nome, r.saida, false);
+    else if (r.aviso) aviso(r.aviso);
+    if (r.saida) mostrarTexto(r.ok ? b.nome : `${b.nome}: o que falhou`, r.saida, false);
     if (r.texto != null) mostrarTexto('Clipboard do PC', r.texto, true);
   } catch (e) {
     marcar(el, false); aviso(e.message, true);
@@ -259,9 +260,17 @@ const TIPOS = {
     ['teclas', 'Teclas', 'texto', 'Ex.: ctrl+shift+esc · win+d · alt+tab · f5 · playpause · proxima · anterior · volumemais · volumemenos · mudo']] },
   'texto-pc': { nome: 'Enviar texto pro PC', campos: [['colar', 'Colar sozinho (Ctrl+V) depois de enviar', 'check']] },
   'clipboard-pc': { nome: 'Pegar clipboard do PC', campos: [] },
+  sequencia: { nome: 'Modo (vários botões em sequência)', campos: [
+    ['botoes', 'Botões, um por linha (nome igual ao do botão)', 'area', 'Ex.: VS Code · Terminal · Navegador']] },
+  obs: { nome: 'OBS Studio', campos: [
+    ['comando', 'Comando', 'select', '', { 'iniciar-live': 'Iniciar transmissão', 'parar-live': 'Encerrar transmissão', 'alternar-live': 'Liga/desliga transmissão',
+      'iniciar-gravacao': 'Iniciar gravação', 'parar-gravacao': 'Parar gravação', 'alternar-gravacao': 'Liga/desliga gravação', 'pausar-gravacao': 'Pausar/retomar gravação',
+      'cena': 'Ir para uma cena', 'proxima-cena': 'Próxima cena', 'mutar': 'Mutar/desmutar áudio', 'alternar-fonte': 'Mostrar/esconder fonte (ex.: câmera)', 'salvar-replay': 'Salvar replay' }],
+    ['alvo', 'Nome da cena, áudio ou fonte (quando precisar)', 'texto', 'Igual aparece no OBS. Ex.: Mic/Aux, Câmera, Jogando']] },
+  microfone: { nome: 'Microfone do Windows', campos: [['modo', 'Ação', 'select', '', { alternar: 'Liga/desliga', mutar: 'Mutar', desmutar: 'Desmutar' }]] },
   pagina: { nome: 'Ir para outra página', campos: [['pagina', 'Página', 'paginas']] },
   relogio: { nome: 'Ir para o relógio', campos: [['estilo', 'Estilo', 'select', '',
-    { digital: 'Digital', minimal: 'Minimalista', analogico: 'Analógico', palavras: 'Por extenso', pomodoro: 'Pomodoro' }]] },
+    { lcd: 'LCD', cores: 'Duas cores', grande: 'Números grandes', digital: 'Digital', minimal: 'Minimalista', analogico: 'Analógico', palavras: 'Por extenso', pomodoro: 'Pomodoro' }]] },
 };
 
 $('#btnEditar').onclick = () => {
@@ -490,6 +499,10 @@ function renderizarPC() {
       ? `Você está na versão ${c.versao}. A versão ${estado.atualizacao.versao} já saiu${estado.atualizacao.notas ? ': ' + estado.atualizacao.notas : '.'}`
       : `Versão ${c.versao}. Está tudo em dia.`;
     $('#btnAtualizar').hidden = !estado.atualizacao;
+    if (c.obs && document.activeElement?.closest?.('.cartao') == null) {
+      $('#obsHost').value = c.obs.host; $('#obsPorta').value = c.obs.porta;
+      $('#obsSenha').placeholder = c.obs.temSenha ? 'senha salva (digite para trocar)' : 'senha do WebSocket';
+    }
   }
   if (s) {
     for (const [k, v] of [['Cpu', s.cpu], ['Ram', s.ram]]) {
@@ -520,6 +533,21 @@ $('#btnProcurar').onclick = async () => {
     estado.atualizacao = r.nova; renderizarPC();
     aviso(r.erro ? r.erro : r.nova ? `Versão ${r.nova.versao} disponível!` : `Você já está na versão mais nova (${r.atual}).`, !!r.erro);
   } catch (e) { aviso(e.message, true); }
+};
+
+$('#btnObs').onclick = async () => {
+  aviso('Testando o OBS…');
+  try {
+    const r = await api('obs', { host: $('#obsHost').value.trim(), porta: $('#obsPorta').value.trim(), senha: $('#obsSenha').value });
+    $('#obsSenha').value = '';
+    aviso(r.ok ? `✅ OBS ${r.versao} conectado` : r.erro, !r.ok);
+  } catch (e) { aviso(e.message, true); }
+};
+
+$('#btnRestaurar').onclick = async () => {
+  if (!(await confirmar('Carregar as páginas do Command Center?', 'Suas páginas de botões atuais vão ser trocadas pelas do padrão.'))) return;
+  try { await api('restaurar-paginas'); estado.pagina = 0; aviso('Páginas carregadas'); irParaTela(TELA.botoes); }
+  catch (e) { aviso(e.message, true); }
 };
 
 $('#btnDesparear').onclick = async () => {
@@ -589,8 +617,12 @@ function aviso(texto, erro) {
 
 // ------------------------------------------------------------ tela do relógio
 
-const ESTILOS = ['digital', 'minimal', 'analogico', 'palavras', 'pomodoro'];
-let estilo = ESTILOS.includes(ler('sd_estilo')) ? ler('sd_estilo') : 'digital';
+const ESTILOS = ['lcd', 'cores', 'grande', 'digital', 'minimal', 'analogico', 'palavras', 'pomodoro'];
+const COM_DATA_PROPRIA = ['lcd', 'cores', 'grande', 'pomodoro'];
+let estilo = ESTILOS.includes(ler('sd_estilo')) ? ler('sd_estilo') : 'lcd';
+const SEMANA_CURTA = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
+const diaOuNoite = d => (d.getHours() >= 6 && d.getHours() < 18) ? '☀️ dia' : '🌙 noite';
+const dataExtenso = d => d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).replace(/^./, c => c.toUpperCase());
 const dois = n => String(n).padStart(2, '0');
 
 const NUM = ['zero', 'um', 'dois', 'três', 'quatro', 'cinco', 'seis', 'sete', 'oito', 'nove', 'dez', 'onze', 'doze', 'treze',
@@ -612,6 +644,55 @@ const pomodoro = { fase: 'foco', restante: 25 * 60, fim: null };
 const DURACAO = { foco: 25 * 60, pausa: 5 * 60 };
 
 const RELOGIOS = {
+  // estilo relógio digital de LCD (tipo Nixon Regulus)
+  lcd: {
+    montar: el => el.innerHTML = `<div class="rel-lcd">
+      <div class="lcd-linha lcd-hora"><span class="lcd-7"><i>88:88</i><b data-hm></b></span><span class="lcd-7 lcd-seg"><i>88</i><b data-s></b></span></div>
+      <div class="lcd-linha lcd-meio"><span class="lcd-7"><i>88-88</i><b data-dm></b></span><span class="lcd-14 lcd-rotulo" data-turno></span><span class="lcd-7"><i>8888</i><b data-ano></b></span></div>
+      <div class="lcd-linha lcd-dia"><span class="lcd-14"><i>~~~</i><b data-sem></b></span><span class="lcd-7"><i>88</i><b data-d></b></span></div>
+    </div>`,
+    atualizar: (el, d) => {
+      const q = s => el.querySelector(s);
+      q('[data-hm]').textContent = `${dois(d.getHours())}:${dois(d.getMinutes())}`;
+      q('[data-s]').textContent = dois(d.getSeconds());
+      q('[data-dm]').textContent = `${dois(d.getDate())}-${dois(d.getMonth() + 1)}`;
+      q('[data-ano]').textContent = d.getFullYear();
+      q('[data-sem]').textContent = SEMANA_CURTA[d.getDay()];
+      q('[data-d]').textContent = dois(d.getDate());
+      q('[data-turno]').textContent = d.getHours() >= 6 && d.getHours() < 18 ? 'DIA' : 'NOITE';
+    },
+  },
+  // hora branca e minuto laranja, lado a lado
+  cores: {
+    montar: el => el.innerHTML = `<div class="rel-cores">
+      <div class="cores-lado"><div data-turno></div><div data-sem></div><div data-data></div></div>
+      <div class="cores-hora"><span data-h></span><span data-m></span></div>
+    </div>`,
+    atualizar: (el, d) => {
+      const q = s => el.querySelector(s);
+      q('[data-h]').textContent = dois(d.getHours());
+      q('[data-m]').textContent = dois(d.getMinutes());
+      q('[data-turno]').textContent = diaOuNoite(d);
+      q('[data-sem]').textContent = d.toLocaleDateString('pt-BR', { weekday: 'long' }).replace(/^./, c => c.toUpperCase()) + ',';
+      q('[data-data]').textContent = d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+    },
+  },
+  // números enormes e finos: horas • minutos • segundos
+  grande: {
+    montar: el => el.innerHTML = `<div class="rel-grande">
+      <div class="grande-numeros"><span data-h></span><i class="pontos"></i><span data-m></span><i class="pontos"></i><span data-s></span></div>
+      <div class="grande-base"><b data-dm></b><b data-sem></b><span data-turno></span></div>
+    </div>`,
+    atualizar: (el, d) => {
+      const q = s => el.querySelector(s);
+      q('[data-h]').textContent = dois(d.getHours());
+      q('[data-m]').textContent = dois(d.getMinutes());
+      q('[data-s]').textContent = dois(d.getSeconds());
+      q('[data-dm]').textContent = `${dois(d.getDate())}.${dois(d.getMonth() + 1)}.${d.getFullYear()}`;
+      q('[data-sem]').textContent = d.toLocaleDateString('pt-BR', { weekday: 'long' }).replace(/^./, c => c.toUpperCase());
+      q('[data-turno]').textContent = diaOuNoite(d);
+    },
+  },
   digital: {
     montar: el => el.innerHTML = '<div class="rel-digital"><span data-hm></span><small data-s></small></div>',
     atualizar: (el, d) => { el.querySelector('[data-hm]').textContent = `${dois(d.getHours())}:${dois(d.getMinutes())}`; el.querySelector('[data-s]').textContent = dois(d.getSeconds()); },
@@ -690,10 +771,11 @@ function trocarEstilo(novo) {
 function atualizarRelogio() {
   const d = new Date();
   RELOGIOS[estilo].atualizar($('#aodRelogio'), d);
-  $('#aodData').textContent = estilo === 'pomodoro' ? '' : d.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' }).replace(/^./, c => c.toUpperCase());
+  $('#aodData').textContent = COM_DATA_PROPRIA.includes(estilo) ? '' : dataExtenso(d);
   const s = estado.stats;
   const pend = pendentes().length;
   $('#aodInfo').innerHTML = [
+    COM_DATA_PROPRIA.includes(estilo) ? '' : diaOuNoite(d),
     s ? `CPU ${s.cpu}% · RAM ${s.ram}%` : '',
     pend ? `<span class="alerta">🛡️ ${pend}</span>` : '',
     estado.naoLidas ? `<span class="alerta">🔔 ${estado.naoLidas}</span>` : '',
@@ -715,9 +797,16 @@ $('#telaRelogio').addEventListener('click', e => {
   manterTelaLigada(true);
 });
 
-$('#btnTelaCheia').onclick = () => {
-  if (document.fullscreenElement) document.exitFullscreen?.().catch(() => {});
-  else document.documentElement.requestFullscreen?.({ navigationUI: 'hide' }).catch(() => {});
+// tela cheia trava o celular deitado (toque de novo para sair)
+$('#btnTelaCheia').onclick = async () => {
+  if (document.fullscreenElement) {
+    try { screen.orientation?.unlock?.(); } catch {}
+    return document.exitFullscreen?.().catch(() => {});
+  }
+  try {
+    await document.documentElement.requestFullscreen?.({ navigationUI: 'hide' });
+    await screen.orientation?.lock?.('landscape');
+  } catch {}
 };
 
 let trava = null;

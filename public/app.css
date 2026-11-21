@@ -104,6 +104,49 @@ textarea { min-height: 120px; resize: vertical; }
 #acordado { position: fixed; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
 
 /* relógio */
+@font-face { font-family: "LCD7"; src: url("fontes/DSEG7Classic-Bold.woff2") format("woff2"); font-display: block; }
+@font-face { font-family: "LCD14"; src: url("fontes/DSEG14Classic-Regular.woff2") format("woff2"); font-display: block; }
+
+/* LCD: dígitos "apagados" (88) atrás dos acesos, como num display de verdade */
+.rel-lcd { color: #c9cfb4; display: flex; flex-direction: column; gap: 3.2vh; font-size: min(4.6vw, 8vh); }
+.lcd-linha { display: flex; align-items: flex-end; justify-content: space-between; gap: .5em; }
+.lcd-7, .lcd-14 { position: relative; display: inline-block; white-space: pre; line-height: 1; }
+.lcd-7 { font-family: "LCD7", monospace; font-style: italic; }
+.lcd-14 { font-family: "LCD14", monospace; font-style: italic; }
+.lcd-7 i, .lcd-14 i { font-style: inherit; color: #c9cfb40b; }
+.lcd-14 i { visibility: hidden; }
+.lcd-7 b, .lcd-14 b { position: absolute; right: 0; bottom: 0; font-weight: inherit; }
+.lcd-hora .lcd-7:first-child { font-size: 3.4em; }
+.lcd-hora .lcd-seg { font-size: 1.5em; align-self: flex-start; }
+.lcd-meio { font-size: .9em; }
+.lcd-rotulo { font-size: .5em; color: #8b9180; letter-spacing: .1em; }
+.lcd-dia { font-size: 1.8em; justify-content: flex-start; gap: .7em; }
+
+.rel-cores { display: flex; align-items: center; gap: 5vw; }
+.cores-hora { display: flex; gap: .12em; font-size: min(30vw, 56vh); font-weight: 800; line-height: .9; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+.cores-hora [data-h] { color: #fafafa; }
+.cores-hora [data-m] { color: #f05a3c; }
+.cores-lado { display: flex; flex-direction: column; gap: 6px; font-size: min(3.6vw, 4.2vh); color: #a1a1aa; }
+.cores-lado [data-turno] { margin-bottom: 10px; color: #d4d4d8; }
+
+.rel-grande { display: flex; flex-direction: column; align-items: center; gap: 4vh; }
+.grande-numeros { display: flex; align-items: center; gap: 2.5vw; font-size: min(19vw, 50vh); font-weight: 200; line-height: 1; font-variant-numeric: tabular-nums; color: #fafafa; }
+.pontos { width: .07em; display: flex; flex-direction: column; gap: .14em; }
+.pontos::before, .pontos::after { content: ""; width: .07em; height: .07em; border-radius: 50%; background: #71717a; }
+.grande-base { display: flex; gap: 2em; font-size: min(3.4vw, 4.4vh); letter-spacing: .08em; color: #d4d4d8; }
+.grande-base span { color: #71717a; font-weight: 400; }
+
+/* em pé, os relógios novos empilham (como nas telas de celular) */
+@media (orientation: portrait) {
+  .rel-lcd { font-size: 5.6vw; gap: 2.4vh; }
+  .rel-cores { flex-direction: column-reverse; align-items: flex-start; gap: 18px; }
+  .cores-hora { flex-direction: column; font-size: 42vw; }
+  .cores-lado { font-size: 4.4vw; }
+  .grande-numeros { flex-direction: column; font-size: 36vw; gap: 2vh; }
+  .pontos { flex-direction: row; width: auto; }
+  .grande-base { font-size: 4vw; }
+}
+
 #telaRelogio { align-items: center; justify-content: center; color: #d4d4d8; }
 #aodConteudo { display: flex; flex-direction: column; align-items: center; gap: 10px; transition: transform 2s; }
 #aodData { font-size: 18px; color: #71717a; }

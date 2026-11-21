@@ -2,7 +2,7 @@
 // Rodar na raiz do repositório: node publicar/gerar-manifesto.js
 const fs = require('fs'), path = require('path'), crypto = require('crypto');
 const raiz = path.join(__dirname, '..');
-const fora = new Set(['.git', 'publicar', 'config.json', 'manifesto.json', '.gitignore', '.gitattributes', 'node_modules']);
+const fora = new Set(['.git', 'publicar', 'config.json', 'checklist.txt', 'manifesto.json', '.gitignore', '.gitattributes', 'node_modules']);
 const arquivos = {};
 (function andar(dir) {
   for (const nome of fs.readdirSync(dir).sort()) {

@@ -16,11 +16,21 @@ Para abrir junto com o Windows: `Win+R` → `shell:startup` → crie ali um atal
 
 O app é dividido em telas. Deslize para o lado ou toque nos ícones de baixo:
 
-1. **🕐 Relógio** (abre sempre nele): tela preta tipo always on display. Toque para trocar o estilo: digital, minimalista, analógico, por extenso e pomodoro. A tela fica acesa e o relógio se mexe um pouquinho a cada minuto para não marcar.
+1. **🕐 Relógio** (abre sempre nele): tela preta tipo always on display, feita para o celular deitado. Toque para trocar o estilo: LCD, duas cores, números grandes, digital, minimalista, analógico, por extenso e pomodoro. O ⛶ no canto põe em tela cheia e trava deitado. A tela fica acesa e o relógio se mexe um pouquinho a cada minuto para não marcar.
 2. **🎛️ Botões**: toque para executar. As abas de cima são as suas páginas de botões. No **✏️** você muda nome, ícone (emoji), cor e o que cada botão faz; o **+** cria um novo e "Página…" cria, renomeia, move e apaga páginas.
 3. **🔔 Notificações**: avisos do PC e do Claude.
 4. **🛡️ Permissões**: pedidos com **Permitir / Negar**. Quando chega um, o celular vibra, pula sozinho para esta tela e depois volta para onde você estava.
 5. **💻 PC**: uso de CPU e RAM, versão e atualização, e desconectar o celular.
+
+### Páginas do Command Center
+
+Já vem com **HOME** (atalhos para as outras páginas e os modos), **VILTRUN**, **WORK**, **SYSTEM**, **GAMING**, **STREAM**, **AUDIO** e **EXTRAS**. Se você já usava uma versão antiga, carregue elas na tela 💻 → "Carregar páginas do Command Center".
+
+Botões que dependem de você (Dashboard, Clientes, Database, Jogo favorito) vêm vazios: toque no ✏️ e coloque o programa ou site. A pasta **Projetos** aponta para `C:\Users\<você>\Projetos`; troque se for outra.
+
+**Modos** (DEV, WORK, GAMING, STREAM, END SESSION) apertam vários botões em sequência, pelo nome. Para mudar o que um modo abre, edite a lista no ✏️ (um nome de botão por linha). O END SESSION abre o `checklist.txt` da pasta do Stream Deck; edite ele à vontade.
+
+**OBS**: no OBS, vá em Ferramentas → Configurações do servidor WebSocket → Ativar e copie a senha. No celular, tela 💻 → OBS Studio → cole a senha → Salvar e testar. Se a sua câmera ou microfone tiverem outro nome no OBS, ajuste o nome no ✏️ dos botões Câmera e Mutar mic.
 
 ### Tipos de botão
 
@@ -31,7 +41,10 @@ O app é dividido em telas. Deslize para o lado ou toque nos ícones de baixo:
 | Atalho de teclado | `ctrl+shift+esc`, `win+d`, `alt+tab`, `f5`, `playpause`, `proxima`, `anterior`, `volumemais`, `volumemenos`, `mudo` |
 | Enviar texto pro PC | digita no celular e vai para o Ctrl+V do PC (ou já cola sozinho) |
 | Pegar clipboard do PC | mostra no celular o que está copiado no PC |
-| Ir para página / Modo relógio | navegação dentro do próprio deck |
+| Modo | vários botões em sequência (nomes, um por linha) |
+| OBS Studio | transmissão, gravação, pausa, cenas, mutar áudio, mostrar/esconder câmera, replay |
+| Microfone do Windows | liga/desliga o microfone padrão do PC |
+| Ir para página / Ir para o relógio | navegação dentro do próprio deck |
 
 Também dá para editar tudo direto no `config.json` (com o servidor fechado).
 

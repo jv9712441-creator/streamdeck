@@ -9,41 +9,727 @@
   "urlAtualizacao": "https://raw.githubusercontent.com/jv9712441-creator/streamdeck/main",
   "paginas": [
     {
-      "nome": "Principal",
+      "nome": "HOME",
       "botoes": [
-        { "nome": "Navegador", "icone": "🌐", "cor": "#2563eb", "acao": { "tipo": "app", "caminho": "https://google.com" } },
-        { "nome": "Spotify", "icone": "🎵", "cor": "#16a34a", "acao": { "tipo": "app", "caminho": "spotify:" } },
-        { "nome": "Discord", "icone": "💬", "cor": "#5865f2", "acao": { "tipo": "app", "caminho": "%LOCALAPPDATA%\\Discord\\Update.exe", "argumentos": "--processStart Discord.exe" } },
-        { "nome": "VS Code", "icone": "🧑‍💻", "cor": "#0e7490", "acao": { "tipo": "app", "caminho": "code" } },
-        { "nome": "Arquivos", "icone": "📁", "cor": "#ca8a04", "acao": { "tipo": "app", "caminho": "explorer" } },
-        { "nome": "Gerenciador", "icone": "📊", "cor": "#475569", "acao": { "tipo": "atalho", "teclas": "ctrl+shift+esc" } },
-        { "nome": "Print", "icone": "✂️", "cor": "#7c3aed", "acao": { "tipo": "atalho", "teclas": "win+shift+s" } },
-        { "nome": "Bloquear PC", "icone": "🔒", "cor": "#b91c1c", "confirmar": true, "acao": { "tipo": "comando", "comando": "rundll32.exe user32.dll,LockWorkStation", "shell": "cmd" } },
-        { "nome": "Relógio", "icone": "🕐", "cor": "#111827", "acao": { "tipo": "relogio", "estilo": "digital" } }
+        {
+          "nome": "VILTRUN",
+          "icone": "🏢",
+          "cor": "#f97316",
+          "acao": {
+            "tipo": "pagina",
+            "pagina": "VILTRUN"
+          }
+        },
+        {
+          "nome": "WORK",
+          "icone": "💼",
+          "cor": "#2563eb",
+          "acao": {
+            "tipo": "pagina",
+            "pagina": "WORK"
+          }
+        },
+        {
+          "nome": "SYSTEM",
+          "icone": "🖥️",
+          "cor": "#334155",
+          "acao": {
+            "tipo": "pagina",
+            "pagina": "SYSTEM"
+          }
+        },
+        {
+          "nome": "GAMING",
+          "icone": "🎮",
+          "cor": "#7c3aed",
+          "acao": {
+            "tipo": "pagina",
+            "pagina": "GAMING"
+          }
+        },
+        {
+          "nome": "STREAM",
+          "icone": "🎥",
+          "cor": "#b91c1c",
+          "acao": {
+            "tipo": "pagina",
+            "pagina": "STREAM"
+          }
+        },
+        {
+          "nome": "AUDIO",
+          "icone": "🎧",
+          "cor": "#16a34a",
+          "acao": {
+            "tipo": "pagina",
+            "pagina": "AUDIO"
+          }
+        },
+        {
+          "nome": "CLOCK",
+          "icone": "🕐",
+          "cor": "#1f2937",
+          "acao": {
+            "tipo": "relogio",
+            "estilo": "lcd"
+          }
+        },
+        {
+          "nome": "DEV MODE",
+          "icone": "🧑‍💻",
+          "cor": "#f97316",
+          "acao": {
+            "tipo": "sequencia",
+            "botoes": "VS Code\nCloud\nSancoto\nTerminal\nNavegador\nProjetos"
+          }
+        },
+        {
+          "nome": "WORK MODE",
+          "icone": "📋",
+          "cor": "#2563eb",
+          "acao": {
+            "tipo": "sequencia",
+            "botoes": "WhatsApp Web\nE-mail\nExplorador"
+          }
+        },
+        {
+          "nome": "GAMING MODE",
+          "icone": "🕹️",
+          "cor": "#7c3aed",
+          "acao": {
+            "tipo": "sequencia",
+            "botoes": "Discord\nJogo favorito\nMixer de volume"
+          }
+        },
+        {
+          "nome": "STREAM MODE",
+          "icone": "📡",
+          "cor": "#b91c1c",
+          "acao": {
+            "tipo": "sequencia",
+            "botoes": "Abrir OBS"
+          }
+        },
+        {
+          "nome": "END SESSION",
+          "icone": "🌙",
+          "cor": "#1f2937",
+          "acao": {
+            "tipo": "sequencia",
+            "botoes": "Checklist\nE-mail"
+          },
+          "confirmar": true
+        }
       ]
     },
     {
-      "nome": "Mídia",
+      "nome": "VILTRUN",
       "botoes": [
-        { "nome": "Anterior", "icone": "⏮️", "cor": "#334155", "acao": { "tipo": "atalho", "teclas": "anterior" } },
-        { "nome": "Play/Pause", "icone": "⏯️", "cor": "#16a34a", "acao": { "tipo": "atalho", "teclas": "playpause" } },
-        { "nome": "Próxima", "icone": "⏭️", "cor": "#334155", "acao": { "tipo": "atalho", "teclas": "proxima" } },
-        { "nome": "Volume −", "icone": "🔉", "cor": "#334155", "acao": { "tipo": "atalho", "teclas": "volumemenos" } },
-        { "nome": "Mudo", "icone": "🔇", "cor": "#b91c1c", "acao": { "tipo": "atalho", "teclas": "mudo" } },
-        { "nome": "Volume +", "icone": "🔊", "cor": "#334155", "acao": { "tipo": "atalho", "teclas": "volumemais" } }
+        {
+          "nome": "Dashboard",
+          "icone": "📊",
+          "cor": "#f97316",
+          "acao": {
+            "tipo": "app",
+            "caminho": ""
+          }
+        },
+        {
+          "nome": "VS Code",
+          "icone": "🧑‍💻",
+          "cor": "#0e7490",
+          "acao": {
+            "tipo": "app",
+            "caminho": "code"
+          }
+        },
+        {
+          "nome": "Terminal",
+          "icone": "⌨️",
+          "cor": "#1f2937",
+          "acao": {
+            "tipo": "app",
+            "caminho": "wt"
+          }
+        },
+        {
+          "nome": "Projetos",
+          "icone": "📁",
+          "cor": "#ca8a04",
+          "acao": {
+            "tipo": "app",
+            "caminho": "%USERPROFILE%\\Projetos"
+          }
+        },
+        {
+          "nome": "Clientes",
+          "icone": "👥",
+          "cor": "#2563eb",
+          "acao": {
+            "tipo": "app",
+            "caminho": ""
+          }
+        },
+        {
+          "nome": "Cloud",
+          "icone": "☁️",
+          "cor": "#d97706",
+          "acao": {
+            "tipo": "app",
+            "caminho": "https://claude.ai"
+          }
+        },
+        {
+          "nome": "Sancoto",
+          "icone": "🤖",
+          "cor": "#f97316",
+          "acao": {
+            "tipo": "app",
+            "caminho": "https://sancoto.viltrun.duckdns.org"
+          }
+        },
+        {
+          "nome": "Database",
+          "icone": "🗄️",
+          "cor": "#334155",
+          "acao": {
+            "tipo": "app",
+            "caminho": ""
+          }
+        },
+        {
+          "nome": "GitHub",
+          "icone": "🐙",
+          "cor": "#24292f",
+          "acao": {
+            "tipo": "app",
+            "caminho": "https://github.com/jv9712441-creator?tab=repositories"
+          }
+        },
+        {
+          "nome": "Suporte",
+          "icone": "💬",
+          "cor": "#db2777",
+          "acao": {
+            "tipo": "app",
+            "caminho": "https://www.instagram.com/direct/inbox/"
+          }
+        },
+        {
+          "nome": "E-mail",
+          "icone": "📧",
+          "cor": "#b91c1c",
+          "acao": {
+            "tipo": "app",
+            "caminho": "https://mail.google.com"
+          }
+        },
+        {
+          "nome": "DEV MODE",
+          "icone": "🚀",
+          "cor": "#f97316",
+          "acao": {
+            "tipo": "sequencia",
+            "botoes": "VS Code\nCloud\nSancoto\nTerminal\nNavegador\nProjetos"
+          }
+        }
       ]
     },
     {
-      "nome": "Ferramentas",
+      "nome": "WORK",
       "botoes": [
-        { "nome": "Texto → PC", "icone": "📤", "cor": "#0891b2", "acao": { "tipo": "texto-pc", "colar": false } },
-        { "nome": "Clipboard do PC", "icone": "📥", "cor": "#0891b2", "acao": { "tipo": "clipboard-pc" } },
-        { "nome": "Área de trabalho", "icone": "🖥️", "cor": "#475569", "acao": { "tipo": "atalho", "teclas": "win+d" } },
-        { "nome": "IP do PC", "icone": "📡", "cor": "#475569", "acao": { "tipo": "comando", "comando": "Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notlike '127.*' } | Select-Object InterfaceAlias, IPAddress | Format-Table -AutoSize | Out-String", "mostrarSaida": true } },
-        { "nome": "Pomodoro", "icone": "🍅", "cor": "#dc2626", "acao": { "tipo": "relogio", "estilo": "pomodoro" } },
-        { "nome": "Desligar em 1 min", "icone": "⏻", "cor": "#b91c1c", "confirmar": true, "acao": { "tipo": "comando", "comando": "shutdown /s /t 60", "shell": "cmd" } },
-        { "nome": "Cancelar desligar", "icone": "✋", "cor": "#16a34a", "acao": { "tipo": "comando", "comando": "shutdown /a", "shell": "cmd" } }
+        {
+          "nome": "Copiar",
+          "icone": "📄",
+          "cor": "#334155",
+          "acao": {
+            "tipo": "atalho",
+            "teclas": "ctrl+c"
+          }
+        },
+        {
+          "nome": "Colar",
+          "icone": "📋",
+          "cor": "#334155",
+          "acao": {
+            "tipo": "atalho",
+            "teclas": "ctrl+v"
+          }
+        },
+        {
+          "nome": "Salvar",
+          "icone": "💾",
+          "cor": "#2563eb",
+          "acao": {
+            "tipo": "atalho",
+            "teclas": "ctrl+s"
+          }
+        },
+        {
+          "nome": "Print",
+          "icone": "✂️",
+          "cor": "#7c3aed",
+          "acao": {
+            "tipo": "atalho",
+            "teclas": "win+shift+s"
+          }
+        },
+        {
+          "nome": "Explorador",
+          "icone": "📁",
+          "cor": "#ca8a04",
+          "acao": {
+            "tipo": "app",
+            "caminho": "explorer"
+          }
+        },
+        {
+          "nome": "WhatsApp Web",
+          "icone": "🟢",
+          "cor": "#16a34a",
+          "acao": {
+            "tipo": "app",
+            "caminho": "https://web.whatsapp.com"
+          }
+        },
+        {
+          "nome": "E-mail",
+          "icone": "📧",
+          "cor": "#b91c1c",
+          "acao": {
+            "tipo": "app",
+            "caminho": "https://mail.google.com"
+          }
+        },
+        {
+          "nome": "Navegador",
+          "icone": "🌐",
+          "cor": "#2563eb",
+          "acao": {
+            "tipo": "app",
+            "caminho": "https://google.com"
+          }
+        },
+        {
+          "nome": "Calculadora",
+          "icone": "🧮",
+          "cor": "#334155",
+          "acao": {
+            "tipo": "app",
+            "caminho": "calc"
+          }
+        },
+        {
+          "nome": "Gerenciador",
+          "icone": "📈",
+          "cor": "#1f2937",
+          "acao": {
+            "tipo": "atalho",
+            "teclas": "ctrl+shift+esc"
+          }
+        },
+        {
+          "nome": "Texto → PC",
+          "icone": "📤",
+          "cor": "#0891b2",
+          "acao": {
+            "tipo": "texto-pc",
+            "colar": false
+          }
+        },
+        {
+          "nome": "Clipboard do PC",
+          "icone": "📥",
+          "cor": "#0891b2",
+          "acao": {
+            "tipo": "clipboard-pc"
+          }
+        }
+      ]
+    },
+    {
+      "nome": "SYSTEM",
+      "botoes": [
+        {
+          "nome": "Configurações",
+          "icone": "⚙️",
+          "cor": "#334155",
+          "acao": {
+            "tipo": "app",
+            "caminho": "ms-settings:"
+          }
+        },
+        {
+          "nome": "PowerShell",
+          "icone": "💠",
+          "cor": "#2563eb",
+          "acao": {
+            "tipo": "app",
+            "caminho": "powershell"
+          }
+        },
+        {
+          "nome": "Gerenciador",
+          "icone": "📈",
+          "cor": "#1f2937",
+          "acao": {
+            "tipo": "atalho",
+            "teclas": "ctrl+shift+esc"
+          }
+        },
+        {
+          "nome": "Bloquear PC",
+          "icone": "🔒",
+          "cor": "#b91c1c",
+          "acao": {
+            "tipo": "comando",
+            "comando": "rundll32.exe user32.dll,LockWorkStation",
+            "shell": "cmd"
+          },
+          "confirmar": true
+        },
+        {
+          "nome": "Área de trabalho",
+          "icone": "🖥️",
+          "cor": "#334155",
+          "acao": {
+            "tipo": "atalho",
+            "teclas": "win+d"
+          }
+        },
+        {
+          "nome": "Mixer de volume",
+          "icone": "🎚️",
+          "cor": "#16a34a",
+          "acao": {
+            "tipo": "app",
+            "caminho": "sndvol"
+          }
+        },
+        {
+          "nome": "Config. de áudio",
+          "icone": "🔊",
+          "cor": "#16a34a",
+          "acao": {
+            "tipo": "app",
+            "caminho": "ms-settings:sound"
+          }
+        },
+        {
+          "nome": "Config. de rede",
+          "icone": "📶",
+          "cor": "#2563eb",
+          "acao": {
+            "tipo": "app",
+            "caminho": "ms-settings:network"
+          }
+        },
+        {
+          "nome": "IP do PC",
+          "icone": "📡",
+          "cor": "#334155",
+          "acao": {
+            "tipo": "comando",
+            "comando": "Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notlike '127.*' } | Select-Object InterfaceAlias, IPAddress | Format-Table -AutoSize | Out-String",
+            "mostrarSaida": true
+          }
+        },
+        {
+          "nome": "Desligar em 1 min",
+          "icone": "⏻",
+          "cor": "#b91c1c",
+          "acao": {
+            "tipo": "comando",
+            "comando": "shutdown /s /t 60",
+            "shell": "cmd"
+          },
+          "confirmar": true
+        },
+        {
+          "nome": "Cancelar desligar",
+          "icone": "✋",
+          "cor": "#16a34a",
+          "acao": {
+            "tipo": "comando",
+            "comando": "shutdown /a",
+            "shell": "cmd"
+          }
+        }
+      ]
+    },
+    {
+      "nome": "GAMING",
+      "botoes": [
+        {
+          "nome": "Discord",
+          "icone": "💬",
+          "cor": "#5865f2",
+          "acao": {
+            "tipo": "app",
+            "caminho": "%LOCALAPPDATA%\\Discord\\Update.exe",
+            "argumentos": "--processStart Discord.exe"
+          }
+        },
+        {
+          "nome": "Jogo favorito",
+          "icone": "🎮",
+          "cor": "#7c3aed",
+          "acao": {
+            "tipo": "app",
+            "caminho": ""
+          }
+        },
+        {
+          "nome": "Microfone",
+          "icone": "🎙️",
+          "cor": "#b91c1c",
+          "acao": {
+            "tipo": "microfone",
+            "modo": "alternar"
+          }
+        },
+        {
+          "nome": "Print do jogo",
+          "icone": "📸",
+          "cor": "#334155",
+          "acao": {
+            "tipo": "atalho",
+            "teclas": "win+alt+prtsc"
+          }
+        },
+        {
+          "nome": "Gravar (Game Bar)",
+          "icone": "⏺️",
+          "cor": "#b91c1c",
+          "acao": {
+            "tipo": "atalho",
+            "teclas": "win+alt+r"
+          }
+        },
+        {
+          "nome": "Mixer de volume",
+          "icone": "🎚️",
+          "cor": "#16a34a",
+          "acao": {
+            "tipo": "app",
+            "caminho": "sndvol"
+          }
+        },
+        {
+          "nome": "Desempenho",
+          "icone": "📊",
+          "cor": "#1f2937",
+          "acao": {
+            "tipo": "app",
+            "caminho": "perfmon",
+            "argumentos": "/res"
+          }
+        },
+        {
+          "nome": "Game Bar",
+          "icone": "🎯",
+          "cor": "#334155",
+          "acao": {
+            "tipo": "atalho",
+            "teclas": "win+g"
+          }
+        }
+      ]
+    },
+    {
+      "nome": "STREAM",
+      "botoes": [
+        {
+          "nome": "Abrir OBS",
+          "icone": "🎥",
+          "cor": "#1f2937",
+          "acao": {
+            "tipo": "app",
+            "caminho": "%ProgramFiles%\\obs-studio\\bin\\64bit\\obs64.exe"
+          }
+        },
+        {
+          "nome": "Iniciar live",
+          "icone": "🔴",
+          "cor": "#b91c1c",
+          "acao": {
+            "tipo": "obs",
+            "comando": "iniciar-live"
+          },
+          "confirmar": true
+        },
+        {
+          "nome": "Encerrar live",
+          "icone": "⏹️",
+          "cor": "#1f2937",
+          "acao": {
+            "tipo": "obs",
+            "comando": "parar-live"
+          },
+          "confirmar": true
+        },
+        {
+          "nome": "Gravar",
+          "icone": "⏺️",
+          "cor": "#b91c1c",
+          "acao": {
+            "tipo": "obs",
+            "comando": "iniciar-gravacao"
+          }
+        },
+        {
+          "nome": "Pausar gravação",
+          "icone": "⏯️",
+          "cor": "#334155",
+          "acao": {
+            "tipo": "obs",
+            "comando": "pausar-gravacao"
+          }
+        },
+        {
+          "nome": "Parar gravação",
+          "icone": "⏹️",
+          "cor": "#1f2937",
+          "acao": {
+            "tipo": "obs",
+            "comando": "parar-gravacao"
+          }
+        },
+        {
+          "nome": "Próxima cena",
+          "icone": "🎬",
+          "cor": "#7c3aed",
+          "acao": {
+            "tipo": "obs",
+            "comando": "proxima-cena"
+          }
+        },
+        {
+          "nome": "Mutar mic (OBS)",
+          "icone": "🔇",
+          "cor": "#b91c1c",
+          "acao": {
+            "tipo": "obs",
+            "comando": "mutar",
+            "alvo": "Mic/Aux"
+          }
+        },
+        {
+          "nome": "Câmera",
+          "icone": "📷",
+          "cor": "#2563eb",
+          "acao": {
+            "tipo": "obs",
+            "comando": "alternar-fonte",
+            "alvo": "Dispositivo de captura de vídeo"
+          }
+        },
+        {
+          "nome": "Salvar replay",
+          "icone": "💾",
+          "cor": "#16a34a",
+          "acao": {
+            "tipo": "obs",
+            "comando": "salvar-replay"
+          }
+        }
+      ]
+    },
+    {
+      "nome": "AUDIO",
+      "botoes": [
+        {
+          "nome": "Anterior",
+          "icone": "⏮️",
+          "cor": "#334155",
+          "acao": {
+            "tipo": "atalho",
+            "teclas": "anterior"
+          }
+        },
+        {
+          "nome": "Play/Pause",
+          "icone": "⏯️",
+          "cor": "#16a34a",
+          "acao": {
+            "tipo": "atalho",
+            "teclas": "playpause"
+          }
+        },
+        {
+          "nome": "Próxima",
+          "icone": "⏭️",
+          "cor": "#334155",
+          "acao": {
+            "tipo": "atalho",
+            "teclas": "proxima"
+          }
+        },
+        {
+          "nome": "Volume −",
+          "icone": "🔉",
+          "cor": "#334155",
+          "acao": {
+            "tipo": "atalho",
+            "teclas": "volumemenos"
+          }
+        },
+        {
+          "nome": "Mudo",
+          "icone": "🔇",
+          "cor": "#b91c1c",
+          "acao": {
+            "tipo": "atalho",
+            "teclas": "mudo"
+          }
+        },
+        {
+          "nome": "Volume +",
+          "icone": "🔊",
+          "cor": "#334155",
+          "acao": {
+            "tipo": "atalho",
+            "teclas": "volumemais"
+          }
+        },
+        {
+          "nome": "Spotify",
+          "icone": "🎵",
+          "cor": "#16a34a",
+          "acao": {
+            "tipo": "app",
+            "caminho": "spotify:"
+          }
+        }
+      ]
+    },
+    {
+      "nome": "EXTRAS",
+      "botoes": [
+        {
+          "nome": "Checklist",
+          "icone": "✅",
+          "cor": "#16a34a",
+          "acao": {
+            "tipo": "app",
+            "caminho": "%STREAMDECK%\\checklist.txt"
+          }
+        },
+        {
+          "nome": "Pomodoro",
+          "icone": "🍅",
+          "cor": "#dc2626",
+          "acao": {
+            "tipo": "relogio",
+            "estilo": "pomodoro"
+          }
+        }
       ]
     }
-  ]
+  ],
+  "obs": {
+    "host": "127.0.0.1",
+    "porta": 4455,
+    "senha": ""
+  }
 }

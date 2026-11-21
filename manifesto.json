@@ -1,21 +1,25 @@
 {
-  "versao": "1.2.0",
-  "notas": "Agora em telas: relógio, botões, notificações, permissões e PC. Deslize para o lado.",
+  "versao": "1.3.0",
+  "notas": "Command Center: páginas HOME, VILTRUN, WORK, SYSTEM, GAMING, STREAM e AUDIO, modos, OBS, microfone e relógios novos (LCD, duas cores, números grandes).",
   "arquivos": {
-    "LEIA-ME.md": "96e0962eda25067622c0d9bb234e00e4b430885c3dc5f5843adee0cc8a14587d",
-    "config.padrao.json": "e158ab934aa12af591bd96d408f5efe31aa82ec5f0a92a9c345f2a7f3c059286",
+    "LEIA-ME.md": "6cecb7a23a6ebc8b4db3ea1d97f5ea21d3c1bcfe8cbb925b1c1100efdd102727",
+    "config.padrao.json": "2d75493c2ae7d3bd371af4fb00cdefff8f79aef0e8789afe0256d4473e2ee2cc",
+    "ferramentas/microfone.ps1": "38c45b941307f8b90db92abc74574b2f7e562f2c6c600bd60819236650b5be7a",
     "ferramentas/notificar.ps1": "1e2bf6ac57ca9cae6128d2fd420b355990b7681bb048660d1dd2b423f9ff7f3c",
     "ferramentas/teclas.ps1": "5776fa830eb5a6d507303165cad246c246b88c2cbc7a8274ec8080e6bff06e7f",
     "hooks/claude-stream-deck.js": "1e2387f4e9adf813fe6985df0b62ed2d056ec7dbc128784725566d478b1c7dc0",
     "hooks/instalar-claude.js": "502a2291011c8c68258a279662095d7cd75df0f73a8f2b062c97feb95a222faf",
     "iniciar.bat": "3ca810884b4d26ba6d9b0d7997d54b9305770f9c73812bc748bd51a3db1e4f79",
     "public/acordado.mp4": "de501c3e05673785ca4d4334d7e0cee17395bf859269cdbfedc5cf86f4c29b61",
-    "public/app.css": "912b8cbaa09a66ff4f65b2f7b30862b28c3c85fc8833652766bfdc29778c15b2",
-    "public/app.js": "5f283546efab193e165fbe6df3128059431c063322f0acbccdeca48be54adb3d",
+    "public/app.css": "7b58252ff029eb977cdc5f3c822706dfc978055252da6e3aee7d400779374eba",
+    "public/app.js": "1660eba8b37f83c5fc0ecfb80f03e0923ee9a971314409eb3f93481dbb398f1f",
+    "public/fontes/DSEG14Classic-Regular.woff2": "327c24d55049422f513d59fddc3919bba72186ea6b42ea8e214be06e0faa0530",
+    "public/fontes/DSEG7Classic-Bold.woff2": "ec2e7499bc8ac8f8225e1fb6a5d45ff6083c6e2b0efbaf99d37fa7b42a5767ff",
+    "public/fontes/LICENCA-DSEG.txt": "c6ee0567859cb7cc8d992149bbd96ad359ef65fb7355f7feae0547555ffacd23",
     "public/icone.svg": "4f5691af4fa004f6ff1bdfc4d716fe5719aa73f9062a719f1a43780cfe329a66",
-    "public/index.html": "5382ef58e891b1436e8f1ebe704d362621111b093db529245480bfe69f447436",
+    "public/index.html": "6f3d94b6190a6802b211f4e73081db359d2224200b84063ef4d494a5b1a19105",
     "public/manifest.webmanifest": "074f0083661dbe579eaffad940421cd1c835b50e708d368404f67f08733dc6ce",
-    "server.js": "84b12687d2c890653f7eaebd9d5e542acfcb5ee24a8485bf999bb7f4564d477e",
-    "versao.json": "3f886eacdc66445aee367e5c17b2768deecbb8a2e4492aa17fd8d157bdc534fe"
+    "server.js": "cd89ec5ced27413c7810117dcc1444ef8a8cf1b7fcba4db25b9e650849cb8964",
+    "versao.json": "1ad21a0c094e8982f703f1a7d1c7b8f9f745271d3c8abbb22030c7e12f91e5b8"
   }
 }

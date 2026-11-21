@@ -1,6 +1,6 @@
 // Guarda o app no celular para ele abrir mesmo sem o PC (e sem internet).
 // Sempre abre o que está guardado e, em segundo plano, baixa a versão nova para a próxima vez.
-const CACHE = 'deck-v5';
+const CACHE = 'deck-v6';
 const ARQUIVOS = ['./', 'index.html', 'app.css', 'app.js', 'manifest.webmanifest', 'icone.svg', 'icone-192.png', 'icone-512.png',
   'marca.png', 'acordado.mp4', 'fontes/DSEG7Classic-Bold.woff2', 'fontes/DSEG14Classic-Regular.woff2', 'jsqr.js',
   'fundo-tatico.jpg', 'fundo-fantasma.jpg', 'fundo-viatura.jpg', 'fundo-pickup.jpg', 'textura-gasta.png', 'fontes/Oswald-500.woff2', 'fontes/Montserrat-900.woff2'];

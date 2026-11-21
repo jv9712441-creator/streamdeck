@@ -53,6 +53,22 @@ function carregarConfig() {
       if (b.acao?.tipo === 'app' && /^sndvol(\.exe)?$/i.test(String(b.acao.caminho).trim())) { b.acao = { tipo: 'app', caminho: 'app:SteelSeries GG' }; b.icone = '🎧'; }
     c.migracoes.push('mixer-steelseries'); mudou = true;
   }
+  if (!c.migracoes.includes('dev-mode-2')) {
+    // DEV MODE novo: Claude, Sancoto, Terminal, WhatsApp no Firefox, VPS, Stoat e Discord
+    const todos = (c.paginas || []).flatMap(p => p.botoes || []);
+    const tem = nome => todos.some(b => String(b.nome).toLowerCase() === nome.toLowerCase());
+    for (const b of todos) if (b.nome === 'Cloud' && /claude\.ai/.test(b.acao?.caminho || '')) Object.assign(b, { nome: 'Claude', icone: '✳️', acao: { tipo: 'app', caminho: 'app:Claude' } });
+    const viltrun = (c.paginas || []).find(p => p.nome === 'VILTRUN');
+    if (viltrun) {
+      const novos = JSON.parse(fs.readFileSync(CONFIG_PADRAO, 'utf8')).paginas.find(p => p.nome === 'VILTRUN').botoes
+        .filter(b => ['WhatsApp Firefox', 'VPS', 'Stoat', 'Claude'].includes(b.nome) && !tem(b.nome));
+      const i = viltrun.botoes.findIndex(b => b.nome === 'DEV MODE');
+      viltrun.botoes.splice(i < 0 ? viltrun.botoes.length : i, 0, ...novos);
+    }
+    for (const b of todos) if (b.nome === 'DEV MODE' && b.acao?.tipo === 'sequencia')
+      b.acao.botoes = ['Claude', 'Sancoto', 'Terminal', 'WhatsApp Firefox', 'VPS', 'Stoat', 'Discord'].join('\n');
+    c.migracoes.push('dev-mode-2'); mudou = true;
+  }
   if (mudou) salvarConfig(c);
   return c;
 }

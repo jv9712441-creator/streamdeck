@@ -1,9 +1,9 @@
 {
-  "versao": "2.0.0",
-  "notas": "O app agora abre mesmo sem o PC. Para conectar: tela 💻 → Escanear QR code do PC. Na tela 💻, toque em Instalar o app.",
+  "versao": "2.0.1",
+  "notas": "DEV MODE novo: Claude, Sancoto, Terminal, WhatsApp no Firefox, VPS (Área de Trabalho Remota), Stoat e Discord.",
   "arquivos": {
     "LEIA-ME.md": "bd30834dad53c7c16a51ae878b728cee2c4dd149c49815fe8f9c7b6b33b3859a",
-    "config.padrao.json": "8ce406cbe7dda5ce029a532ccb21421ffab28a4bd49b11f5296d27e13b20ac26",
+    "config.padrao.json": "19f737e421f99dab866dc4c5ac4cb4e3ea2755bde1c979c315aae119f6bf90f5",
     "ferramentas/microfone.ps1": "38c45b941307f8b90db92abc74574b2f7e562f2c6c600bd60819236650b5be7a",
     "ferramentas/notificar.ps1": "1e2bf6ac57ca9cae6128d2fd420b355990b7681bb048660d1dd2b423f9ff7f3c",
     "ferramentas/teclas.ps1": "5776fa830eb5a6d507303165cad246c246b88c2cbc7a8274ec8080e6bff06e7f",
@@ -25,7 +25,7 @@
     "public/manifest.webmanifest": "8242b1da8ec7241d94872f31eeced600e4da92c4ad528f2358c738a548626a1d",
     "public/marca.png": "49426210cfdc15e987734ab3f8e27b22254fd1106cc910fc337f04cce3cf3365",
     "public/sw.js": "31d7591198cb17c0f4c9a045a68eb7130fb554ccb4e92d7eee3a1a365af09a3b",
-    "server.js": "d6e8023624d03009b212abbf14c9ece942db23e208477e310c61fdc0e5fea41b",
-    "versao.json": "7b1af6595aa6e6e2000229a24310d3b4ab04d3664dde8240eb3bfd58dc6b6b8c"
+    "server.js": "258a1961e71a627951b4b98b0a39237f824befa64f7d72f30d6027f13dba3740",
+    "versao.json": "375cffd8aa44c498a5d2d18ec271f38cbac94af7e1239186f3b7f062563be0cf"
   }
 }

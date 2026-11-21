@@ -80,7 +80,7 @@
           "cor": "#f97316",
           "acao": {
             "tipo": "sequencia",
-            "botoes": "VS Code\nCloud\nSancoto\nTerminal\nNavegador\nProjetos"
+            "botoes": "Claude\nSancoto\nTerminal\nWhatsApp Firefox\nVPS\nStoat\nDiscord"
           }
         },
         {
@@ -171,12 +171,12 @@
           }
         },
         {
-          "nome": "Cloud",
-          "icone": "☁️",
+          "nome": "Claude",
+          "icone": "✳️",
           "cor": "#d97706",
           "acao": {
             "tipo": "app",
-            "caminho": "https://claude.ai"
+            "caminho": "app:Claude"
           }
         },
         {
@@ -225,12 +225,41 @@
           }
         },
         {
+          "nome": "WhatsApp Firefox",
+          "icone": "🟢",
+          "cor": "#16a34a",
+          "acao": {
+            "tipo": "app",
+            "caminho": "firefox",
+            "argumentos": "https://web.whatsapp.com"
+          }
+        },
+        {
+          "nome": "VPS",
+          "icone": "🖧",
+          "cor": "#0f766e",
+          "acao": {
+            "tipo": "comando",
+            "shell": "powershell",
+            "comando": "$f = Join-Path ([Environment]::GetFolderPath('MyDocuments')) 'Default.rdp'; if (Test-Path $f) { Start-Process mstsc -ArgumentList ('\"' + $f + '\"') } else { Start-Process mstsc }"
+          }
+        },
+        {
+          "nome": "Stoat",
+          "icone": "🦦",
+          "cor": "#7c3aed",
+          "acao": {
+            "tipo": "app",
+            "caminho": "app:Stoat"
+          }
+        },
+        {
           "nome": "DEV MODE",
           "icone": "🚀",
           "cor": "#f97316",
           "acao": {
             "tipo": "sequencia",
-            "botoes": "VS Code\nCloud\nSancoto\nTerminal\nNavegador\nProjetos"
+            "botoes": "Claude\nSancoto\nTerminal\nWhatsApp Firefox\nVPS\nStoat\nDiscord"
           }
         }
       ]
@@ -733,6 +762,7 @@
     "senha": ""
   },
   "migracoes": [
-    "mixer-steelseries"
+    "mixer-steelseries",
+    "dev-mode-2"
   ]
 }

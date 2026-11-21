@@ -259,14 +259,31 @@ textarea { min-height: 120px; resize: vertical; }
 .rel-tatico.fantasma .tat-data { font-size: min(1.7vw, 3.4vh); }
 .rel-tatico.fantasma .tat-frase { top: auto; bottom: 12%; left: 6%; width: 36%; font-style: italic; border-bottom: 0; color: #e4e4e7; }
 .rel-tatico.fantasma .tat-frase em { color: #ff6a13; }
+/* viatura e pickup: artes já na proporção da tela */
+#telaRelogio[data-arte="viatura"] { background-image: url("fundo-viatura.jpg"); background-position: center center; }
+#telaRelogio[data-arte="pickup"] { background-image: url("fundo-pickup.jpg"); background-position: center center; }
+.rel-tatico.viatura .tat-dir { left: 45%; right: 2%; top: 1%; text-align: left; }
+.rel-tatico.viatura .tat-hora { justify-content: flex-start; font-size: min(13vw, 28vh); }
+.rel-tatico.viatura .tat-info { justify-content: flex-start; margin-top: .6vh; font-size: min(2vw, 3.8vh); }
+.rel-tatico.viatura .tat-esq { left: 3%; top: 55%; width: 34%; }
+.rel-tatico.viatura .tat-frase { top: 80%; left: 3%; width: 46%; font-size: min(1.5vw, 3.2vh); padding-bottom: .8vh; text-shadow: 0 2px 6px #000, 0 0 14px #000; }
+.rel-tatico.viatura .tat-data, .rel-tatico.viatura .tat-turno { text-shadow: 0 2px 6px #000, 0 0 14px #000; }
+.rel-tatico.pickup .tat-dir { left: 39%; right: 19%; top: 21%; }
+.rel-tatico.pickup .tat-hora { font-size: min(14vw, 44vh); }
+.rel-tatico.pickup .tat-info { margin-top: 1vh; }
+.rel-tatico.pickup .tat-esq { left: 41%; top: 62%; width: 30%; }
+.rel-tatico.pickup .tat-frase { top: auto; bottom: 3%; left: 25%; width: 52%; font-size: min(1.45vw, 3.1vh); padding-bottom: .8vh; }
+
 @media (orientation: portrait) {
   #telaRelogio[data-arte="tatico"] { background-position: 22% center; }
   #telaRelogio[data-arte="fantasma"] { background-position: 32% center; }
-  .rel-tatico .tat-dir, .rel-tatico.fantasma .tat-dir { left: 4%; right: 4%; top: 30%; }
-  .rel-tatico .tat-hora, .rel-tatico.fantasma .tat-hora { font-size: 30vw; }
-  .rel-tatico .tat-info, .rel-tatico.fantasma .tat-info { font-size: 3.8vw; margin-top: 2vh; }
-  .rel-tatico .tat-esq, .rel-tatico.fantasma .tat-esq { left: 7%; top: 12%; width: 86%; }
+  #telaRelogio[data-arte="viatura"] { background-position: 70% center; }
+  #telaRelogio[data-arte="pickup"] { background-position: 20% center; }
+  .rel-tatico .tat-dir, .rel-tatico.fantasma .tat-dir, .rel-tatico.viatura .tat-dir, .rel-tatico.pickup .tat-dir { left: 4%; right: 4%; top: 30%; }
+  .rel-tatico .tat-hora, .rel-tatico.fantasma .tat-hora, .rel-tatico.viatura .tat-hora, .rel-tatico.pickup .tat-hora { justify-content: center; font-size: 30vw; }
+  .rel-tatico .tat-info, .rel-tatico.fantasma .tat-info, .rel-tatico.viatura .tat-info, .rel-tatico.pickup .tat-info { justify-content: center; font-size: 3.8vw; margin-top: 2vh; }
+  .rel-tatico .tat-esq, .rel-tatico.fantasma .tat-esq, .rel-tatico.viatura .tat-esq, .rel-tatico.pickup .tat-esq { left: 7%; top: 12%; width: 86%; }
   .tat-turno { font-size: 4.2vw; }
   .tat-data { font-size: 3.8vw; }
-  .rel-tatico .tat-frase, .rel-tatico.fantasma .tat-frase { top: auto; bottom: 12%; left: 7%; width: 86%; font-size: 3.6vw; }
+  .rel-tatico .tat-frase, .rel-tatico.fantasma .tat-frase, .rel-tatico.viatura .tat-frase, .rel-tatico.pickup .tat-frase { top: auto; bottom: 12%; left: 7%; width: 86%; font-size: 3.6vw; }
 }

@@ -1,8 +1,8 @@
 {
-  "versao": "2.1.0",
-  "notas": "Dois relógios novos com arte: Tático (bandeira de SC e PM) e Fantasma. Arraste para cima no relógio para ver.",
+  "versao": "2.2.0",
+  "notas": "Mais dois relógios com arte: Viatura e Pickup. Arraste para cima no relógio para ver.",
   "arquivos": {
-    "LEIA-ME.md": "5ae2556baf23290d085d1f22683796b969e1bed2a2568a9bc8a66c15aba684ac",
+    "LEIA-ME.md": "975b67fe525d64e910099c5fa72411104c229a6678dea06f96ed13732172c529",
     "config.padrao.json": "976e2b6c8f7b0680d26bb36f8cc0332a8e9a4ce42e2b19426367fea1de481c30",
     "ferramentas/fechar-apps.ps1": "235c8cf1391e5c2e17fd23378b583750444cac3d9b8c8662752d6f2ae8dca0cb",
     "ferramentas/microfone.ps1": "0cb02aad4b9ec7b40b7b1742c5f7334b2d9ce3989be540aaa24910f9b160249d",
@@ -13,8 +13,8 @@
     "iniciar.bat": "3ca810884b4d26ba6d9b0d7997d54b9305770f9c73812bc748bd51a3db1e4f79",
     "public/LICENCA-JSQR.txt": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08",
     "public/acordado.mp4": "de501c3e05673785ca4d4334d7e0cee17395bf859269cdbfedc5cf86f4c29b61",
-    "public/app.css": "58cbd11aa50d437ba2f164da82104506a46e3eb564a5f643787ee875d405c1b8",
-    "public/app.js": "8ca9cdae696edb067d99230ca8675fe00f1beb138971afaa175b8ff7ab2a5253",
+    "public/app.css": "2ef72cc8f15398cbbd88a6fd565e6adad98678f91e54ff7f8160ee4a7146e997",
+    "public/app.js": "bbc33b4059fa01bcd7d7d70e8dcedcb9bbe13b60c1e4079b7ee038b5102d4fce",
     "public/fontes/DSEG14Classic-Regular.woff2": "327c24d55049422f513d59fddc3919bba72186ea6b42ea8e214be06e0faa0530",
     "public/fontes/DSEG7Classic-Bold.woff2": "ec2e7499bc8ac8f8225e1fb6a5d45ff6083c6e2b0efbaf99d37fa7b42a5767ff",
     "public/fontes/LICENCA-DSEG.txt": "c6ee0567859cb7cc8d992149bbd96ad359ef65fb7355f7feae0547555ffacd23",
@@ -22,7 +22,9 @@
     "public/fontes/Montserrat-900.woff2": "5b6958520638bb8609f9eacb17c4d189563efeae96d5da49f7c2043988697205",
     "public/fontes/Oswald-500.woff2": "541b12882301dc44b73eaaed9e230709df1d299379c3594695870fc2f9e3ff0a",
     "public/fundo-fantasma.jpg": "c4f634943335c8d553fb28f45a949e8bbd552a0a239b78b1b6c3241968ff26bb",
+    "public/fundo-pickup.jpg": "180e4a86ce639c51912d1181ee8bcfbecb0c008a66c922b40e4bc3a2860a7711",
     "public/fundo-tatico.jpg": "678ecce6c25c8a04a063320aee94b15f28e110bde5b5c2e70b68cc3da04659ca",
+    "public/fundo-viatura.jpg": "4086a7d8e174120c64cfb53964bbd1297f975f0f8bfd7cc8dacdd12470d9b8dc",
     "public/icone-192.png": "c590b7c8010cf69c70735c7fcc8867d70d7acd1885ccdc6136ef8fbfbb78d177",
     "public/icone-512.png": "fde30d937185acb33237411272c5651d103fed6824dc6697028eb11ed1fa3bb9",
     "public/icone.svg": "4f5691af4fa004f6ff1bdfc4d716fe5719aa73f9062a719f1a43780cfe329a66",
@@ -30,9 +32,9 @@
     "public/jsqr.js": "bc40c8a15196236b2314db0856f72ca0b49980cd5413b8c852a7349f5fee0859",
     "public/manifest.webmanifest": "8242b1da8ec7241d94872f31eeced600e4da92c4ad528f2358c738a548626a1d",
     "public/marca.png": "49426210cfdc15e987734ab3f8e27b22254fd1106cc910fc337f04cce3cf3365",
-    "public/sw.js": "0b861636054b9e4b2508119006f8b9f6bae6965f95a72e4a3f6101cda90fe36d",
+    "public/sw.js": "1c45f4ace979f0eaba88084c2a42ae9cec48cb2c9070c6bd6e32f205ea3909f6",
     "public/textura-gasta.png": "9a62d5399fac300235451e3e44040b87dd78062997a272646931b6849d93ab20",
     "server.js": "ce75dabe25ff2820284cba5e3d6eb85fd67192b2faa9d61bc8e9d3d39d4372ef",
-    "versao.json": "71289c99f03e6b92022d77054ee447488430eda630328cfae93b5242830b9e33"
+    "versao.json": "17226294ec7166d38351a9f702786091e43a1dd078db46669e41788ee8ecd6e2"
   }
 }

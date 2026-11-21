@@ -1,8 +1,8 @@
 {
-  "versao": "1.4.0",
-  "notas": "Ilha dinâmica no relógio (notificações e Permitir/Negar), arrastar para cima troca o relógio, animações nos botões, Mixer abre o SteelSeries GG e marca feito por Santi.",
+  "versao": "2.0.0",
+  "notas": "O app agora abre mesmo sem o PC. Para conectar: tela 💻 → Escanear QR code do PC. Na tela 💻, toque em Instalar o app.",
   "arquivos": {
-    "LEIA-ME.md": "b31dfdef819d00c10d2b6dceef2828650b330fce3d8f36eaca054cda222d0ef7",
+    "LEIA-ME.md": "bd30834dad53c7c16a51ae878b728cee2c4dd149c49815fe8f9c7b6b33b3859a",
     "config.padrao.json": "8ce406cbe7dda5ce029a532ccb21421ffab28a4bd49b11f5296d27e13b20ac26",
     "ferramentas/microfone.ps1": "38c45b941307f8b90db92abc74574b2f7e562f2c6c600bd60819236650b5be7a",
     "ferramentas/notificar.ps1": "1e2bf6ac57ca9cae6128d2fd420b355990b7681bb048660d1dd2b423f9ff7f3c",
@@ -10,17 +10,22 @@
     "hooks/claude-stream-deck.js": "1e2387f4e9adf813fe6985df0b62ed2d056ec7dbc128784725566d478b1c7dc0",
     "hooks/instalar-claude.js": "502a2291011c8c68258a279662095d7cd75df0f73a8f2b062c97feb95a222faf",
     "iniciar.bat": "3ca810884b4d26ba6d9b0d7997d54b9305770f9c73812bc748bd51a3db1e4f79",
+    "public/LICENCA-JSQR.txt": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08",
     "public/acordado.mp4": "de501c3e05673785ca4d4334d7e0cee17395bf859269cdbfedc5cf86f4c29b61",
-    "public/app.css": "87815453599acb726188ae8e28daaede7a37c1fc5642ee9ab6dd650c239774da",
-    "public/app.js": "bb54f3f1d4fa5adfff12ac324baca5fbc2a1b46ecd1bdffa1bb045386e21b204",
+    "public/app.css": "5f2681aff26fb574668f92eb601e3b7f5be328057afb1c7f0f739b5b26fc19e0",
+    "public/app.js": "7809c7183d997e5c159ce2425e562fdd89a78f6d1f7984978df54b8e76ef7fb5",
     "public/fontes/DSEG14Classic-Regular.woff2": "327c24d55049422f513d59fddc3919bba72186ea6b42ea8e214be06e0faa0530",
     "public/fontes/DSEG7Classic-Bold.woff2": "ec2e7499bc8ac8f8225e1fb6a5d45ff6083c6e2b0efbaf99d37fa7b42a5767ff",
     "public/fontes/LICENCA-DSEG.txt": "c6ee0567859cb7cc8d992149bbd96ad359ef65fb7355f7feae0547555ffacd23",
+    "public/icone-192.png": "c590b7c8010cf69c70735c7fcc8867d70d7acd1885ccdc6136ef8fbfbb78d177",
+    "public/icone-512.png": "fde30d937185acb33237411272c5651d103fed6824dc6697028eb11ed1fa3bb9",
     "public/icone.svg": "4f5691af4fa004f6ff1bdfc4d716fe5719aa73f9062a719f1a43780cfe329a66",
-    "public/index.html": "2968109625ee4868e348faedb70f2f34d867e303d20370a0e3ab899ff8cf1b5f",
-    "public/manifest.webmanifest": "074f0083661dbe579eaffad940421cd1c835b50e708d368404f67f08733dc6ce",
+    "public/index.html": "0171e72851d3ea9a39a5fddc59e108ec7c0fea4dc40afbd6cb106bdc8f9ca831",
+    "public/jsqr.js": "bc40c8a15196236b2314db0856f72ca0b49980cd5413b8c852a7349f5fee0859",
+    "public/manifest.webmanifest": "8242b1da8ec7241d94872f31eeced600e4da92c4ad528f2358c738a548626a1d",
     "public/marca.png": "49426210cfdc15e987734ab3f8e27b22254fd1106cc910fc337f04cce3cf3365",
-    "server.js": "c483dfc3ba8318949d3bde25e59a10b8537e4f753d366cea03aaa211097111a0",
-    "versao.json": "c3a56ea4773e86e64fac611aaa3d4bf4c86ecd162ed14d810a423536b85131c1"
+    "public/sw.js": "31d7591198cb17c0f4c9a045a68eb7130fb554ccb4e92d7eee3a1a365af09a3b",
+    "server.js": "d6e8023624d03009b212abbf14c9ece942db23e208477e310c61fdc0e5fea41b",
+    "versao.json": "7b1af6595aa6e6e2000229a24310d3b4ab04d3664dde8240eb3bfd58dc6b6b8c"
   }
 }

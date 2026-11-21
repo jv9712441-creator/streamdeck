@@ -4,11 +4,20 @@ O celular vira um painel de botões para o PC, um relógio "always on display" e
 
 ## Instalar (uma vez)
 
+**No PC**
 1. Instale o **Node.js 22 ou mais novo** (versão LTS) em https://nodejs.org
 2. Coloque esta pasta onde quiser (ex.: `C:\StreamDeck`).
 3. Dê dois cliques em **`iniciar.bat`**. Se o Windows perguntar sobre o firewall, permita em **redes privadas**.
-4. Abre sozinha uma página com um QR code. Com o celular **no mesmo Wi-Fi**, aponte a câmera para ele.
-5. No Chrome do celular: menu ⋮ → **Adicionar à tela inicial**. Pronto, vira um app.
+4. Abre sozinha uma página com o QR code.
+
+**No celular**
+1. Com o celular **no mesmo Wi-Fi**, aponte a câmera para o QR code. Abre o app já conectado ao PC.
+2. Se o Chrome perguntar sobre **dispositivos na rede local**, toque em **Permitir** (é assim que o app fala com o PC).
+3. Menu ⋮ → **Instalar app** (ou "Adicionar à tela inicial").
+
+O app instalado abre sempre, mesmo com o PC desligado ou sem internet: relógio, botões (os últimos que vieram do PC) e tudo mais. Os botões só funcionam com o PC ligado.
+
+Para conectar a outro PC ou de novo: tela 💻 → **Escanear QR code do PC**.
 
 Para abrir junto com o Windows: `Win+R` → `shell:startup` → crie ali um atalho para o `iniciar.bat`.
 

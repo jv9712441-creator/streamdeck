@@ -15,70 +15,193 @@ const estado = {
   pagina: +(ler('sd_pagina') || 0), editando: false, naoLidas: 0, tela: 0,
 };
 
-// ------------------------------------------------------------ pareamento
+// ------------------------------------------------------------ conexão com o PC
+// Aberto pelo próprio PC (http://IP:8765): conversa com esse mesmo endereço.
+// Instalado pelo GitHub (https): abre sempre, mesmo sem PC, e conversa com o PC salvo ao escanear o QR code.
+
+const PELO_PC = location.protocol === 'http:';
+const APP_URL = 'https://jv9712441-creator.github.io/streamdeck/public/';
+const conexao = { base: PELO_PC ? location.origin : ler('sd_pc'), online: false, controle: null };
+// avisa o Chrome que o destino é um aparelho da rede de casa (ou o próprio aparelho)
+const espacoDe = base => { try { return /^(localhost|127\.|\[::1\])/.test(new URL(base).hostname) ? 'loopback' : 'local'; } catch { return 'local'; } };
+const redeLocal = () => ({ targetAddressSpace: espacoDe(conexao.base) });
 
 (() => {
   const u = new URL(location.href);
-  const t = u.searchParams.get('t');
-  if (t) { guardar('sd_token', t); u.searchParams.delete('t'); history.replaceState(null, '', u.pathname); }
+  const hash = new URLSearchParams(u.hash.slice(1));
+  const t = u.searchParams.get('t') || hash.get('t');
+  const pc = hash.get('pc') || (PELO_PC ? location.origin : null);
+  if (t && pc) { guardar('sd_token', t); guardar('sd_pc', pc); conexao.base = pc; }
+  if (t) history.replaceState(null, '', u.pathname);
   estado.token = ler('sd_token');
+  try { estado.config = JSON.parse(ler('sd_config') || 'null'); } catch {}
 })();
 
-$('#btnSalvarToken').onclick = () => {
-  const t = $('#tokenManual').value.trim();
-  if (!t) return;
-  estado.token = t; guardar('sd_token', t); conectar();
-};
+const pareado = () => !!(estado.token && conexao.base);
+
+// Aceita o QR do PC nos dois formatos: http://IP:8765/?t=… ou o link do app (#pc=…&t=…)
+function parear(texto) {
+  let u;
+  try { u = new URL(String(texto).trim()); } catch { throw new Error('Esse QR code não é do Stream Deck.'); }
+  const hash = new URLSearchParams(u.hash.slice(1));
+  const t = u.searchParams.get('t') || hash.get('t');
+  let pc = hash.get('pc') || (u.protocol === 'http:' ? u.origin : null);
+  if (!t || !pc) throw new Error('Esse QR code não é do Stream Deck.');
+  pc = new URL(pc).origin;
+  conexao.base = pc; estado.token = t;
+  guardar('sd_pc', pc); guardar('sd_token', t);
+  conectar();
+}
 
 function esquecerToken() {
   estado.token = null; guardar('sd_token', null);
-  fonte?.close();
-  $('#parear').hidden = false;
+  if (!PELO_PC) { conexao.base = null; guardar('sd_pc', null); }
+  conexao.controle?.abort();
+  ficouOnline(false);
 }
 
-// ------------------------------------------------------------ comunicação com o PC
+function ficouOnline(on) {
+  conexao.online = on;
+  $('#status').classList.toggle('on', on);
+  atualizarRelogio(); renderizarPC();
+}
 
 async function api(rota, corpo) {
-  const r = await fetch('/api/' + rota, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-token': estado.token },
-    body: JSON.stringify(corpo || {}),
-  });
+  if (!pareado()) throw new Error('Nenhum PC conectado. Vá na tela 💻 e escaneie o QR code.');
+  let r;
+  try {
+    r = await fetch(conexao.base + '/api/' + rota, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'x-token': estado.token },
+      body: JSON.stringify(corpo || {}),
+      ...redeLocal(),
+    });
+  } catch { throw new Error('Não consegui falar com o PC. O Stream Deck está aberto lá e no mesmo Wi-Fi?'); }
   const d = await r.json().catch(() => ({}));
-  if (r.status === 401) { esquecerToken(); throw new Error(d.erro || 'Token inválido'); }
+  if (r.status === 401) { esquecerToken(); throw new Error('O PC não reconhece mais este celular. Escaneie o QR code de novo.'); }
   if (!r.ok) throw new Error(d.erro || 'Erro ' + r.status);
   return d;
 }
 
-let fonte;
-function conectar() {
-  if (!estado.token) { $('#parear').hidden = false; return; }
-  $('#parear').hidden = true;
-  fonte?.close();
-  fonte = new EventSource('/api/eventos?t=' + encodeURIComponent(estado.token));
-  fonte.onopen = () => { $('#status').classList.add('on'); atualizarRelogio(); };
-  fonte.onerror = () => {
-    $('#status').classList.remove('on');
-    fetch('/api/ping', { headers: { 'x-token': estado.token } }).then(r => { if (r.status === 401) esquecerToken(); }).catch(() => {});
-  };
-  fonte.addEventListener('estado', e => {
-    const d = JSON.parse(e.data);
+const EVENTOS = {
+  estado: d => {
     // o PC foi atualizado: recarrega para pegar a tela nova
     if (estado.versaoCarregada && d.config.versao !== estado.versaoCarregada) return location.reload();
     estado.versaoCarregada = d.config.versao;
     estado.config = d.config; estado.notifs = d.notifs; estado.stats = d.stats; estado.atualizacao = d.atualizacao;
+    guardar('sd_config', JSON.stringify(d.config)); // para mostrar os botões mesmo sem o PC
     renderizar(); renderizarUso(); renderizarListas(); renderizarPC();
     if (pendentes().length && estado.tela !== TELA.relogio) abrirPermissoes();
-  });
-  fonte.addEventListener('config', e => { estado.config = JSON.parse(e.data); renderizar(); });
-  fonte.addEventListener('stats', e => { estado.stats = JSON.parse(e.data); renderizarUso(); renderizarPC(); });
-  fonte.addEventListener('notif', e => chegouNotif(JSON.parse(e.data)));
-  fonte.addEventListener('atualizacao', e => {
-    const nova = JSON.parse(e.data);
+  },
+  config: d => { estado.config = d; guardar('sd_config', JSON.stringify(d)); renderizar(); },
+  stats: d => { estado.stats = d; renderizarUso(); renderizarPC(); },
+  notif: d => chegouNotif(d),
+  atualizacao: nova => {
     if (nova && nova.versao !== estado.atualizacao?.versao) aviso(`Versão ${nova.versao} disponível. Veja na tela 💻`);
     estado.atualizacao = nova; renderizarPC();
+  },
+  reiniciando: () => aviso('Atualizado! Reiniciando o Stream Deck…'),
+};
+
+// Recebe os eventos ao vivo do PC e reconecta sozinho se cair
+async function conectar() {
+  conexao.controle?.abort();
+  if (!pareado()) { ficouOnline(false); return; }
+  const controle = conexao.controle = new AbortController();
+  let espera = 1000;
+  while (!controle.signal.aborted) {
+    try {
+      const r = await fetch(`${conexao.base}/api/eventos?t=${encodeURIComponent(estado.token)}`, { signal: controle.signal, cache: 'no-store', ...redeLocal() });
+      if (r.status === 401) { aviso('O PC não reconhece mais este celular. Escaneie o QR code de novo.', true); esquecerToken(); return; }
+      if (!r.ok || !r.body) throw new Error('falhou');
+      ficouOnline(true); espera = 1000;
+      const leitor = r.body.pipeThrough(new TextDecoderStream()).getReader();
+      let buf = '';
+      for (;;) {
+        const { value, done } = await leitor.read();
+        if (done) break;
+        buf += value;
+        let i;
+        while ((i = buf.indexOf('\n\n')) >= 0) {
+          const bloco = buf.slice(0, i); buf = buf.slice(i + 2);
+          let nome = '', dados = '';
+          for (const l of bloco.split('\n')) {
+            if (l.startsWith('event: ')) nome = l.slice(7);
+            else if (l.startsWith('data: ')) dados += l.slice(6);
+          }
+          if (nome && dados) try { EVENTOS[nome]?.(JSON.parse(dados)); } catch (e) { console.error(e); }
+        }
+      }
+    } catch { if (controle.signal.aborted) return; }
+    ficouOnline(false);
+    await new Promise(r => setTimeout(r, espera));
+    espera = Math.min(espera * 2, 15000);
+  }
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden && pareado() && !conexao.online) conectar();
+});
+
+// ------------------------------------------------------------ escanear o QR code do PC pela câmera
+
+function carregarJsQR() {
+  return new Promise((ok, erro) => {
+    if (window.jsQR) return ok();
+    const s = document.createElement('script');
+    s.src = 'jsqr.js'; s.onload = ok; s.onerror = erro;
+    document.head.append(s);
   });
-  fonte.addEventListener('reiniciando', () => aviso('Atualizado! Reiniciando o Stream Deck…'));
+}
+
+async function escanearQR() {
+  if (!navigator.mediaDevices?.getUserMedia) {
+    return aviso('A câmera só funciona no app instalado. Toque em "Instalar o app" nesta tela.', true);
+  }
+  const c = abrirModal(`<h2>Escanear QR code</h2><p class="dica">Aponte para o QR code que aparece no PC quando o Stream Deck abre.</p>
+    <video id="camera" playsinline muted style="width:100%;max-height:55vh;object-fit:cover;border-radius:12px;background:#000"></video>
+    <button class="neutro" data-fechar>Cancelar</button>`);
+  let fluxo = null, parar = false, ultimoRuim = '';
+  fecharModalAtual = () => { parar = true; fluxo?.getTracks().forEach(t => t.stop()); };
+  c.querySelector('[data-fechar]').onclick = fecharModal;
+  try {
+    fluxo = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' }, audio: false });
+  } catch {
+    fecharModal();
+    return aviso('Não consegui abrir a câmera. Libere a permissão da câmera para o app.', true);
+  }
+  if (parar) return fluxo.getTracks().forEach(t => t.stop());
+  const video = $('#camera');
+  video.srcObject = fluxo;
+  await video.play().catch(() => {});
+  let detector = null;
+  try { if ('BarcodeDetector' in window) detector = new BarcodeDetector({ formats: ['qr_code'] }); } catch {}
+  if (!detector) await carregarJsQR().catch(() => {});
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d', { willReadFrequently: true });
+
+  const procurar = async () => {
+    if (parar) return;
+    let texto = null;
+    try {
+      if (detector) texto = (await detector.detect(video))[0]?.rawValue;
+      else if (window.jsQR && video.videoWidth) {
+        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+        const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        texto = jsQR(img.data, img.width, img.height)?.data;
+      }
+    } catch {}
+    if (texto && texto !== ultimoRuim) {
+      try {
+        parear(texto);
+        vibrar(80); fecharModal(); aviso('Conectando ao PC…');
+        return;
+      } catch (e) { ultimoRuim = texto; aviso(e.message, true); }
+    }
+    setTimeout(procurar, 200);
+  };
+  procurar();
 }
 
 // ------------------------------------------------------------ navegação entre telas
@@ -132,7 +255,11 @@ $('#menu').addEventListener('touchstart', () => menuApagado(estado.tela === TELA
 const paginas = () => estado.config?.paginas || [];
 
 function renderizar() {
-  if (!estado.config) return;
+  if (!estado.config) {
+    $('#abas').innerHTML = '';
+    $('#grade').innerHTML = '<p class="vazio" style="grid-column:1/-1">Nenhum PC conectado ainda.<br>Vá na tela 💻 e toque em <b>Escanear QR code</b>.</p>';
+    return;
+  }
   const ps = paginas();
   estado.pagina = Math.min(Math.max(0, estado.pagina), Math.max(0, ps.length - 1));
 
@@ -176,7 +303,7 @@ function irPagina(i) {
 const deitado = () => innerWidth > innerHeight;
 function ajustarGrade() {
   const grade = $('#grade');
-  if (!grade.clientWidth) return;
+  if (!grade.clientWidth || !estado.config) return;
   const n = grade.children.length;
   const est = getComputedStyle(grade);
   const gap = parseFloat(est.columnGap) || 10;
@@ -572,6 +699,13 @@ $('#ilha').addEventListener('click', e => {
 
 function renderizarPC() {
   const s = estado.stats, c = estado.config;
+  const nome = c?.nomePC || 'PC';
+  $('#textoConexao').textContent = !pareado()
+    ? 'Nenhum PC conectado. No PC, abra o Stream Deck (iniciar.bat): o QR code aparece na tela.'
+    : conexao.online ? `Conectado ao ${nome}.` : `${nome} fora do ar. Confira se o Stream Deck está aberto no PC e se o celular está no mesmo Wi-Fi.`;
+  $('#btnEscanear').hidden = PELO_PC;
+  $('#btnInstalarApp').hidden = !PELO_PC || !pareado();
+  $('#btnDesparear').hidden = !pareado();
   if (c) {
     $('#nomePC').textContent = c.nomePC || 'PC';
     $('#textoVersao').textContent = estado.atualizacao
@@ -631,6 +765,16 @@ $('#btnRestaurar').onclick = async () => {
 
 $('#btnDesparear').onclick = async () => {
   if (await confirmar('Desconectar este celular?', 'Para usar de novo, vai precisar escanear o QR code no PC.')) esquecerToken();
+};
+$('#btnEscanear').onclick = () => escanearQR();
+$('#btnDigitar').onclick = async () => {
+  const t = await pedirTexto('Endereço do PC', 'Cole o link que aparece embaixo do QR code, na tela do PC.');
+  if (t == null) return;
+  try { parear(t); aviso('Conectando ao PC…'); } catch (e) { aviso(e.message, true); }
+};
+// do app aberto pelo PC para o app instalado (abre sem o PC e usa a câmera), já levando a conexão
+$('#btnInstalarApp').onclick = () => {
+  location.href = `${APP_URL}#pc=${encodeURIComponent(conexao.base)}&t=${encodeURIComponent(estado.token)}`;
 };
 
 // ------------------------------------------------------------ modais
@@ -858,7 +1002,7 @@ function atualizarRelogio() {
     s ? `CPU ${s.cpu}% · RAM ${s.ram}%` : '',
     pend ? `<span class="alerta">🛡️ ${pend}</span>` : '',
     estado.naoLidas ? `<span class="alerta">🔔 ${estado.naoLidas}</span>` : '',
-    $('#status').classList.contains('on') ? '' : '⚠️ PC desconectado',
+    conexao.online ? '' : (pareado() ? '⚠️ PC desconectado' : ''),
   ].filter(Boolean).join(' · ');
 }
 setInterval(atualizarRelogio, 1000);
@@ -928,4 +1072,6 @@ document.addEventListener('pointerdown', () => { if (estado.tela === TELA.relogi
 trocarEstilo(estilo);
 setTimeout(() => $('#aodDica').style.opacity = 0, 5000);
 estado.tela = -1; mudouTela(TELA.relogio); // sempre abre no relógio
+renderizar(); renderizarPC();
 conectar();
+if (!PELO_PC && 'serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});

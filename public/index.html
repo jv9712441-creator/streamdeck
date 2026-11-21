@@ -75,6 +75,14 @@
     <header class="cabeca"><h2 id="nomePC">PC</h2></header>
     <div class="lista">
       <div class="cartao">
+        <h3>Conexão</h3>
+        <p id="textoConexao"></p>
+        <button id="btnEscanear" class="primario">📷 Escanear QR code do PC</button>
+        <button id="btnInstalarApp" class="primario">📲 Instalar o app (abre mesmo sem o PC)</button>
+        <button id="btnDigitar" class="neutro">Digitar o endereço</button>
+        <button id="btnDesparear" class="perigo">Desconectar do PC</button>
+      </div>
+      <div class="cartao">
         <div class="medidor"><span>CPU</span><div class="trilho"><i id="barraCpu"></i></div><b id="valorCpu">–</b></div>
         <div class="medidor"><span>RAM</span><div class="trilho"><i id="barraRam"></i></div><b id="valorRam">–</b></div>
         <p class="dica" id="infoPC"></p>
@@ -97,10 +105,6 @@
         <p>Troca as suas páginas pelas do Command Center (HOME, VILTRUN, WORK, SYSTEM, GAMING, STREAM, AUDIO).</p>
         <button id="btnRestaurar" class="neutro">Carregar páginas do Command Center</button>
       </div>
-      <div class="cartao">
-        <h3>Este celular</h3>
-        <button id="btnDesparear" class="perigo">Desconectar do PC</button>
-      </div>
     </div>
   </section>
 </div>
@@ -114,15 +118,6 @@
   <button data-ir="3" aria-label="Permissões">🛡️<b class="badge" id="badgePedidos" hidden></b></button>
   <button data-ir="4" aria-label="PC">💻<b class="badge" id="badgePC" hidden>1</b></button>
 </nav>
-
-<!-- Sem pareamento -->
-<section id="parear" class="tela" hidden>
-  <h1>🎛️ Stream Deck</h1>
-  <p>No PC, rode <code>iniciar.bat</code> e escaneie o QR code que aparece em <code>localhost:8765/parear</code>.</p>
-  <p>Ou cole o token aqui:</p>
-  <input id="tokenManual" placeholder="token" autocomplete="off">
-  <button id="btnSalvarToken" class="primario">Conectar</button>
-</section>
 
 <!-- Modal genérico (texto, saída de comando, editor, confirmação) -->
 <section id="modal" class="modal" hidden>

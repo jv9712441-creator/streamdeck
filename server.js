@@ -555,6 +555,18 @@ function reiniciar() {
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml', '.png': 'image/png', '.mp4': 'video/mp4', '.woff2': 'font/woff2', '.txt': 'text/plain; charset=utf-8' };
 
+// O app instalado (https, no GitHub) conversa com este servidor de outro endereço: libera isso.
+// Quem manda é o token, então não importa de qual endereço vem o pedido.
+function liberarApp(req, res) {
+  if (!req.headers.origin) return;
+  res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+  res.setHeader('Access-Control-Allow-Headers', 'x-token, content-type');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Private-Network', 'true');
+  res.setHeader('Access-Control-Max-Age', '600');
+  res.setHeader('Vary', 'Origin');
+}
+
 function json(res, codigo, dados) {
   res.writeHead(codigo, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
   res.end(JSON.stringify(dados));
@@ -595,18 +607,23 @@ function servirArquivo(res, arquivo) {
   });
 }
 
+const APP_URL = 'https://jv9712441-creator.github.io/streamdeck/public/';
+
 function paginaPareamento() {
-  const urls = ipsDaRede().map(ip => `http://${ip}:${cfg.porta}/?t=${cfg.token}`);
+  // o QR abre o app instalado já conectado; o endereço direto fica embaixo como alternativa
+  const diretos = ipsDaRede().map(ip => `http://${ip}:${cfg.porta}/?t=${cfg.token}`);
+  const urls = ipsDaRede().map(ip => `${APP_URL}#pc=${encodeURIComponent(`http://${ip}:${cfg.porta}`)}&t=${cfg.token}`);
   return `<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Parear Stream Deck</title>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>body{font-family:system-ui,sans-serif;background:#111;color:#eee;display:grid;place-items:center;min-height:100vh;margin:0}
 main{text-align:center;max-width:520px;padding:24px}.qr{background:#fff;padding:16px;border-radius:12px;display:inline-block;margin:16px 0}
 code{display:block;word-break:break-all;background:#222;padding:10px;border-radius:8px;font-size:13px;margin:6px 0}p{color:#aaa}</style>
 <main><h1>Parear o celular</h1><p>Com o celular no mesmo Wi-Fi do PC, aponte a câmera para o código.</p>
-${urls.length ? urls.map((u, i) => `<div class="qr" id="qr${i}"></div><code>${u}</code>`).join('') : '<p>Não achei o IP do PC na rede. Confira se ele está conectado ao Wi-Fi ou cabo.</p>'}
+<p>Pode escanear com a câmera do celular ou pelo app: tela 💻 → <b>Escanear QR code</b>.</p>
+${urls.length ? urls.map((u, i) => `<div class="qr" id="qr${i}"></div><p>Endereço direto (se preferir abrir pelo PC):</p><code>${diretos[i]}</code>`).join('') : '<p>Não achei o IP do PC na rede. Confira se ele está conectado ao Wi-Fi ou cabo.</p>'}
 <p>Não compartilhe este código: quem tiver ele controla o PC.</p></main>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script>${JSON.stringify(urls)}.forEach((u,i)=>{try{new QRCode(document.getElementById('qr'+i),{text:u,width:240,height:240})}catch(e){}})</script></html>`;
+<script>${JSON.stringify(urls)}.forEach((u,i)=>{try{new QRCode(document.getElementById('qr'+i),{text:u,width:260,height:260,correctLevel:QRCode.CorrectLevel.L})}catch(e){}})</script></html>`;
 }
 
 const servidor = http.createServer(async (req, res) => {
@@ -621,6 +638,9 @@ const servidor = http.createServer(async (req, res) => {
     }
 
     if (!rota.startsWith('/api/')) return servirArquivo(res, rota === '/' ? 'index.html' : rota.slice(1));
+
+    liberarApp(req, res);
+    if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
 
     if (!autorizado(req, url)) return json(res, 401, { erro: 'Token inválido. Pareie de novo pelo QR code.' });
 

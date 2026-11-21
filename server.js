@@ -312,7 +312,7 @@ function versaoMaior(a, b) {
 }
 
 async function buscarManifesto() {
-  const r = await fetch(urlBase() + '/manifesto.json', { cache: 'no-store', signal: AbortSignal.timeout(15000) });
+  const r = await fetch(urlBase() + '/manifesto.json?v=' + Date.now(), { cache: 'no-store', signal: AbortSignal.timeout(15000) });
   if (!r.ok) throw new Error('Servidor de atualizações respondeu ' + r.status);
   return r.json();
 }
@@ -343,7 +343,7 @@ async function aplicarAtualizacao() {
     if (rel === 'config.json' || rel.includes('..') || !/^[\w][\w./-]*$/.test(rel)) throw new Error('Atualização com arquivo inválido: ' + rel);
     const destino = path.join(RAIZ, rel);
     if (fs.existsSync(destino) && sha256(fs.readFileSync(destino)) === hash) continue;
-    const r = await fetch(urlBase() + '/' + rel, { cache: 'no-store', signal: AbortSignal.timeout(30000) });
+    const r = await fetch(urlBase() + '/' + rel + '?v=' + hash.slice(0, 12), { cache: 'no-store', signal: AbortSignal.timeout(30000) });
     if (!r.ok) throw new Error('Falha ao baixar ' + rel);
     const dados = Buffer.from(await r.arrayBuffer());
     if (sha256(dados) !== hash) throw new Error('Arquivo veio corrompido: ' + rel);

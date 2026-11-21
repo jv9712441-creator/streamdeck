@@ -37,7 +37,7 @@ Já vem com **HOME** (atalhos para as outras páginas e os modos), **VILTRUN**, 
 
 Botões que dependem de você (Dashboard, Clientes, Database, Jogo favorito) vêm vazios: toque no ✏️ e coloque o programa ou site. A pasta **Projetos** aponta para `C:\Users\<você>\Projetos`; troque se for outra.
 
-**Modos** (DEV, WORK, GAMING, STREAM, END SESSION) apertam vários botões em sequência, pelo nome. Para mudar o que um modo abre, edite a lista no ✏️ (um nome de botão por linha). O END SESSION abre o `checklist.txt` da pasta do Stream Deck; edite ele à vontade.
+**Modos** (DEV, WORK, GAMING, STREAM, END SESSION) apertam vários botões em sequência, pelo nome. Para mudar o que um modo abre, edite a lista no ✏️ (um nome de botão por linha). Hoje eles abrem: **DEV** (Claude, Sancoto, Terminal, WhatsApp no Firefox, VPS, Stoat, Discord), **WORK** (ChatGPT, YouTube), **GAMING** (Steam, Discord, Spotify) e **STREAM** (Twitch, OBS, Steam, Discord). O **END SESSION** fecha todos os programas abertos, como se você clicasse no X de cada um (quem tiver algo sem salvar pergunta antes). O Stream Deck não fecha. Para deixar algum aberto, ponha o nome dele no ✏️ do END SESSION. O botão Checklist (aba EXTRAS) abre o `checklist.txt`.
 
 **OBS**: no OBS, vá em Ferramentas → Configurações do servidor WebSocket → Ativar e copie a senha. No celular, tela 💻 → OBS Studio → cole a senha → Salvar e testar. Se a sua câmera ou microfone tiverem outro nome no OBS, ajuste o nome no ✏️ dos botões Câmera e Mutar mic.
 
@@ -52,7 +52,8 @@ Botões que dependem de você (Dashboard, Clientes, Database, Jogo favorito) vê
 | Pegar clipboard do PC | mostra no celular o que está copiado no PC |
 | Modo | vários botões em sequência (nomes, um por linha) |
 | OBS Studio | transmissão, gravação, pausa, cenas, mutar áudio, mostrar/esconder câmera, replay |
-| Microfone do Windows | liga/desliga o microfone padrão do PC |
+| Microfone do Windows | liga/desliga todos os microfones do PC de uma vez (inclusive os do SteelSeries Sonar) |
+| Fechar todos os programas | fecha tudo que está aberto (menos o que você listar) |
 | Ir para página / Ir para o relógio | navegação dentro do próprio deck |
 
 Também dá para editar tudo direto no `config.json` (com o servidor fechado).

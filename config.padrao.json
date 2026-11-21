@@ -89,7 +89,7 @@
           "cor": "#2563eb",
           "acao": {
             "tipo": "sequencia",
-            "botoes": "WhatsApp Web\nE-mail\nExplorador"
+            "botoes": "ChatGPT\nYouTube"
           }
         },
         {
@@ -98,7 +98,7 @@
           "cor": "#7c3aed",
           "acao": {
             "tipo": "sequencia",
-            "botoes": "Discord\nJogo favorito\nMixer de volume"
+            "botoes": "Steam\nDiscord\nSpotify"
           }
         },
         {
@@ -107,7 +107,7 @@
           "cor": "#b91c1c",
           "acao": {
             "tipo": "sequencia",
-            "botoes": "Abrir OBS"
+            "botoes": "Twitch\nAbrir OBS\nSteam\nDiscord"
           }
         },
         {
@@ -115,8 +115,8 @@
           "icone": "🌙",
           "cor": "#1f2937",
           "acao": {
-            "tipo": "sequencia",
-            "botoes": "Checklist\nE-mail"
+            "tipo": "fechar-apps",
+            "manter": ""
           },
           "confirmar": true
         }
@@ -373,6 +373,24 @@
           "acao": {
             "tipo": "clipboard-pc"
           }
+        },
+        {
+          "nome": "ChatGPT",
+          "icone": "🤖",
+          "cor": "#10a37f",
+          "acao": {
+            "tipo": "app",
+            "caminho": "app:ChatGPT Classic"
+          }
+        },
+        {
+          "nome": "YouTube",
+          "icone": "▶️",
+          "cor": "#dc2626",
+          "acao": {
+            "tipo": "app",
+            "caminho": "https://youtube.com"
+          }
         }
       ]
     },
@@ -500,12 +518,12 @@
           }
         },
         {
-          "nome": "Jogo favorito",
+          "nome": "Steam",
           "icone": "🎮",
-          "cor": "#7c3aed",
+          "cor": "#1b2838",
           "acao": {
             "tipo": "app",
-            "caminho": ""
+            "caminho": "app:Steam"
           }
         },
         {
@@ -574,7 +592,16 @@
           "cor": "#1f2937",
           "acao": {
             "tipo": "app",
-            "caminho": "%ProgramFiles%\\obs-studio\\bin\\64bit\\obs64.exe"
+            "caminho": "app:OBS Studio"
+          }
+        },
+        {
+          "nome": "Twitch",
+          "icone": "💜",
+          "cor": "#9146ff",
+          "acao": {
+            "tipo": "app",
+            "caminho": "https://twitch.tv"
           }
         },
         {
@@ -727,7 +754,7 @@
           "cor": "#16a34a",
           "acao": {
             "tipo": "app",
-            "caminho": "spotify:"
+            "caminho": "https://open.spotify.com"
           }
         }
       ]
@@ -763,6 +790,8 @@
   },
   "migracoes": [
     "mixer-steelseries",
-    "dev-mode-2"
+    "dev-mode-2",
+    "modos-3",
+    "mixer-2"
   ]
 }

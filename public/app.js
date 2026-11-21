@@ -407,6 +407,8 @@ const TIPOS = {
       'iniciar-gravacao': 'Iniciar gravação', 'parar-gravacao': 'Parar gravação', 'alternar-gravacao': 'Liga/desliga gravação', 'pausar-gravacao': 'Pausar/retomar gravação',
       'cena': 'Ir para uma cena', 'proxima-cena': 'Próxima cena', 'mutar': 'Mutar/desmutar áudio', 'alternar-fonte': 'Mostrar/esconder fonte (ex.: câmera)', 'salvar-replay': 'Salvar replay' }],
     ['alvo', 'Nome da cena, áudio ou fonte (quando precisar)', 'texto', 'Igual aparece no OBS. Ex.: Mic/Aux, Câmera, Jogando']] },
+  'fechar-apps': { nome: 'Fechar todos os programas', campos: [
+    ['manter', 'Não fechar estes (nomes separados por vírgula)', 'texto', 'Ex.: Spotify, Discord. Quem tiver algo sem salvar pergunta antes de fechar.']] },
   microfone: { nome: 'Microfone do Windows', campos: [['modo', 'Ação', 'select', '', { alternar: 'Liga/desliga', mutar: 'Mutar', desmutar: 'Desmutar' }]] },
   pagina: { nome: 'Ir para outra página', campos: [['pagina', 'Página', 'paginas']] },
   relogio: { nome: 'Ir para o relógio', campos: [['estilo', 'Estilo', 'select', '',

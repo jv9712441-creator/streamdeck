@@ -1,10 +1,11 @@
 {
-  "versao": "2.0.1",
-  "notas": "DEV MODE novo: Claude, Sancoto, Terminal, WhatsApp no Firefox, VPS (Área de Trabalho Remota), Stoat e Discord.",
+  "versao": "2.0.2",
+  "notas": "Modos novos (WORK: ChatGPT e YouTube; GAMING: Steam, Discord e Spotify; STREAM: Twitch, OBS, Steam e Discord), END SESSION fecha tudo, Steam no lugar do Jogo favorito, microfone muta todos os microfones e Mixer sempre abre o SteelSeries GG.",
   "arquivos": {
-    "LEIA-ME.md": "bd30834dad53c7c16a51ae878b728cee2c4dd149c49815fe8f9c7b6b33b3859a",
-    "config.padrao.json": "19f737e421f99dab866dc4c5ac4cb4e3ea2755bde1c979c315aae119f6bf90f5",
-    "ferramentas/microfone.ps1": "38c45b941307f8b90db92abc74574b2f7e562f2c6c600bd60819236650b5be7a",
+    "LEIA-ME.md": "5e9c884c451934839fb97d85a331b8a2bc886557064c12873e667eec42d8d2bc",
+    "config.padrao.json": "b8a61875f231aec4931b4c3971dcfaa03f3a3d61dc761263f47e7beec05d7600",
+    "ferramentas/fechar-apps.ps1": "235c8cf1391e5c2e17fd23378b583750444cac3d9b8c8662752d6f2ae8dca0cb",
+    "ferramentas/microfone.ps1": "0cb02aad4b9ec7b40b7b1742c5f7334b2d9ce3989be540aaa24910f9b160249d",
     "ferramentas/notificar.ps1": "1e2bf6ac57ca9cae6128d2fd420b355990b7681bb048660d1dd2b423f9ff7f3c",
     "ferramentas/teclas.ps1": "5776fa830eb5a6d507303165cad246c246b88c2cbc7a8274ec8080e6bff06e7f",
     "hooks/claude-stream-deck.js": "1e2387f4e9adf813fe6985df0b62ed2d056ec7dbc128784725566d478b1c7dc0",
@@ -13,7 +14,7 @@
     "public/LICENCA-JSQR.txt": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08",
     "public/acordado.mp4": "de501c3e05673785ca4d4334d7e0cee17395bf859269cdbfedc5cf86f4c29b61",
     "public/app.css": "5f2681aff26fb574668f92eb601e3b7f5be328057afb1c7f0f739b5b26fc19e0",
-    "public/app.js": "7809c7183d997e5c159ce2425e562fdd89a78f6d1f7984978df54b8e76ef7fb5",
+    "public/app.js": "35e714c921282297c01dad2afda680649471de762a9c5f385a33023fa4ab2066",
     "public/fontes/DSEG14Classic-Regular.woff2": "327c24d55049422f513d59fddc3919bba72186ea6b42ea8e214be06e0faa0530",
     "public/fontes/DSEG7Classic-Bold.woff2": "ec2e7499bc8ac8f8225e1fb6a5d45ff6083c6e2b0efbaf99d37fa7b42a5767ff",
     "public/fontes/LICENCA-DSEG.txt": "c6ee0567859cb7cc8d992149bbd96ad359ef65fb7355f7feae0547555ffacd23",
@@ -25,7 +26,7 @@
     "public/manifest.webmanifest": "8242b1da8ec7241d94872f31eeced600e4da92c4ad528f2358c738a548626a1d",
     "public/marca.png": "49426210cfdc15e987734ab3f8e27b22254fd1106cc910fc337f04cce3cf3365",
     "public/sw.js": "31d7591198cb17c0f4c9a045a68eb7130fb554ccb4e92d7eee3a1a365af09a3b",
-    "server.js": "258a1961e71a627951b4b98b0a39237f824befa64f7d72f30d6027f13dba3740",
-    "versao.json": "375cffd8aa44c498a5d2d18ec271f38cbac94af7e1239186f3b7f062563be0cf"
+    "server.js": "1113a7c6512c6546b85f283ed800eb74639de70fdc2efc8f5a7135198041e530",
+    "versao.json": "1bee0958dc0a16c4d56016c092bbbe4eeb384b5dad89edd8ded0d6953e57500a"
   }
 }

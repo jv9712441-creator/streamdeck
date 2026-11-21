@@ -69,6 +69,35 @@ function carregarConfig() {
       b.acao.botoes = ['Claude', 'Sancoto', 'Terminal', 'WhatsApp Firefox', 'VPS', 'Stoat', 'Discord'].join('\n');
     c.migracoes.push('dev-mode-2'); mudou = true;
   }
+  if (!c.migracoes.includes('modos-3')) {
+    // WORK/GAMING/STREAM MODE novos, END SESSION fecha tudo, Steam no lugar do Jogo favorito
+    const padrao = JSON.parse(fs.readFileSync(CONFIG_PADRAO, 'utf8'));
+    const doPadrao = nome => JSON.parse(JSON.stringify(padrao.paginas.flatMap(p => p.botoes).find(b => b.nome === nome)));
+    const todos = () => (c.paginas || []).flatMap(p => p.botoes || []);
+    const tem = nome => todos().some(b => String(b.nome).toLowerCase() === nome.toLowerCase());
+    const pagina = nome => (c.paginas || []).find(p => p.nome === nome);
+    const g = pagina('GAMING');
+    if (g && !tem('Steam')) {
+      const i = g.botoes.findIndex(b => b.nome === 'Jogo favorito');
+      if (i >= 0) g.botoes.splice(i, 1, doPadrao('Steam')); else g.botoes.push(doPadrao('Steam'));
+    }
+    const w = pagina('WORK');
+    if (w) for (const n of ['ChatGPT', 'YouTube']) if (!tem(n)) w.botoes.push(doPadrao(n));
+    const st = pagina('STREAM');
+    if (st && !tem('Twitch')) st.botoes.splice(1, 0, doPadrao('Twitch'));
+    for (const b of todos()) {
+      if (b.nome === 'Abrir OBS' && /obs64\.exe/i.test(b.acao?.caminho || '')) b.acao = doPadrao('Abrir OBS').acao;
+      if (b.nome === 'Spotify' && b.acao?.caminho === 'spotify:') b.acao = doPadrao('Spotify').acao;
+      if (['WORK MODE', 'GAMING MODE', 'STREAM MODE', 'END SESSION'].includes(b.nome)) { b.acao = doPadrao(b.nome).acao; if (b.nome === 'END SESSION') b.confirmar = true; }
+    }
+    c.migracoes.push('modos-3'); mudou = true;
+  }
+  if (!c.migracoes.includes('mixer-2')) {
+    // qualquer botão de mixer, em qualquer aba, abre o SteelSeries GG
+    for (const p of c.paginas || []) for (const b of p.botoes || [])
+      if (/mixer/i.test(b.nome) && b.acao?.tipo === 'app') { b.acao = { tipo: 'app', caminho: 'app:SteelSeries GG' }; b.icone = '🎧'; }
+    c.migracoes.push('mixer-2'); mudou = true;
+  }
   if (mudou) salvarConfig(c);
   return c;
 }
@@ -297,12 +326,25 @@ async function executar(b, extra = {}) {
     }
     case 'obs':
       return { ok: true, aviso: await comandoOBS(a.comando, a.alvo) };
+    case 'fechar-apps': {
+      if (!WINDOWS) throw new Error('Fechar programas só funciona no Windows');
+      const r = await rodarPowerShell(`& ${psAspas(path.join(RAIZ, 'ferramentas', 'fechar-apps.ps1'))} -Manter ${psAspas(a.manter || '')}`);
+      const linha = r.saida.split(/\r?\n/).find(l => l.startsWith('FECHADOS:'));
+      if (linha == null) throw new Error('Não consegui fechar os programas: ' + r.saida.trim().slice(0, 200));
+      const lista = linha.slice(9).trim();
+      log(`🌙 Fechando: ${lista || 'nada'}`);
+      return { ok: true, aviso: lista ? `🌙 Fechando: ${lista}` : 'Não tinha nenhum programa aberto' };
+    }
     case 'microfone': {
       if (!WINDOWS) throw new Error('Controle do microfone só no Windows');
       const modo = ['mutar', 'desmutar'].includes(a.modo) ? a.modo : 'alternar';
       const r = await rodarPowerShell(`& ${psAspas(path.join(RAIZ, 'ferramentas', 'microfone.ps1'))} -Modo ${modo}`);
       const estadoMic = r.saida.trim().split(/\s+/).pop();
-      if (r.codigo !== 0 || !['mudo', 'ativo'].includes(estadoMic)) throw new Error('Não consegui mexer no microfone: ' + r.saida.trim().slice(0, 200));
+      if (r.codigo !== 0 || !['mudo', 'ativo'].includes(estadoMic)) {
+        log('🎙️ Erro no microfone: ' + r.saida.trim().slice(0, 500));
+        const erro = r.saida.match(/ERRO: (.*)/)?.[1];
+        throw new Error('Não consegui mexer no microfone' + (erro ? ': ' + erro : '. Veja a mensagem na janela preta do PC.'));
+      }
       return { ok: true, aviso: estadoMic === 'mudo' ? '🎙️ Microfone mudo' : '🎙️ Microfone ligado' };
     }
     default:

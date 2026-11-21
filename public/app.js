@@ -412,7 +412,7 @@ const TIPOS = {
   microfone: { nome: 'Microfone do Windows', campos: [['modo', 'Ação', 'select', '', { alternar: 'Liga/desliga', mutar: 'Mutar', desmutar: 'Desmutar' }]] },
   pagina: { nome: 'Ir para outra página', campos: [['pagina', 'Página', 'paginas']] },
   relogio: { nome: 'Ir para o relógio', campos: [['estilo', 'Estilo', 'select', '',
-    { lcd: 'LCD', cores: 'Duas cores', grande: 'Números grandes', digital: 'Digital', minimal: 'Minimalista', analogico: 'Analógico', palavras: 'Por extenso', pomodoro: 'Pomodoro' }]] },
+    { tatico: 'Tático (PM)', fantasma: 'Fantasma', lcd: 'LCD', cores: 'Duas cores', grande: 'Números grandes', digital: 'Digital', minimal: 'Minimalista', analogico: 'Analógico', palavras: 'Por extenso', pomodoro: 'Pomodoro' }]] },
 };
 
 $('#btnEditar').onclick = () => {
@@ -842,8 +842,8 @@ function aviso(texto, erro) {
 
 // ------------------------------------------------------------ tela do relógio
 
-const ESTILOS = ['lcd', 'cores', 'grande', 'digital', 'minimal', 'analogico', 'palavras', 'pomodoro'];
-const COM_DATA_PROPRIA = ['lcd', 'cores', 'grande', 'pomodoro'];
+const ESTILOS = ['tatico', 'fantasma', 'lcd', 'cores', 'grande', 'digital', 'minimal', 'analogico', 'palavras', 'pomodoro'];
+const COM_DATA_PROPRIA = ['tatico', 'fantasma', 'lcd', 'cores', 'grande', 'pomodoro'];
 let estilo = ESTILOS.includes(ler('sd_estilo')) ? ler('sd_estilo') : 'lcd';
 const SEMANA_CURTA = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SAB'];
 const diaOuNoite = d => (d.getHours() >= 6 && d.getHours() < 18) ? '☀️ dia' : '🌙 noite';
@@ -868,7 +868,44 @@ function horaPorExtenso(d) {
 const pomodoro = { fase: 'foco', restante: 25 * 60, fim: null };
 const DURACAO = { foco: 25 * 60, pausa: 5 * 60 };
 
+const FRASE_TATICO = '“Fiz um pacto com a morte: eu não fujo dela, e ela não me persegue. Na certeza de que <em>um dia iremos nos encontrar</em>”';
+const periodo = d => { const h = d.getHours(); return h < 6 ? 'madrugada' : h < 12 ? 'manhã' : h < 19 ? 'tarde' : 'noite'; };
+
+// relógios com arte de fundo: hora, período, data e CPU/RAM desenhados por cima
+function montarArte(el, variante) {
+  el.innerHTML = `<div class="rel-tatico ${variante}">
+    <div class="tat-esq">
+      <div class="tat-turno" data-turno></div>
+      <div class="tat-data"><b data-sem></b><span data-data></span></div>
+    </div>
+    <p class="tat-frase">${FRASE_TATICO}</p>
+    <div class="tat-dir">
+      <div class="tat-hora"><span class="b" data-h></span><span class="l" data-m></span></div>
+      <div class="tat-info" data-info></div>
+    </div>
+  </div>`;
+}
+function atualizarArte(el, d) {
+      const q = s => el.querySelector(s);
+      q('[data-h]').textContent = dois(d.getHours());
+      q('[data-m]').textContent = dois(d.getMinutes());
+      q('[data-turno]').textContent = periodo(d);
+      q('[data-sem]').textContent = d.toLocaleDateString('pt-BR', { weekday: 'long' }).replace(/^./, c => c.toUpperCase()) + ',';
+      q('[data-data]').textContent = d.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long', year: 'numeric' });
+      const s = estado.stats, pend = pendentes().length;
+      q('[data-info]').innerHTML = [
+        s ? `CPU ${s.cpu}%` : '', s ? `RAM ${s.ram}%` : '',
+        pend ? `<span class="alerta">${pend} pedido${pend > 1 ? 's' : ''}</span>` : '',
+        estado.naoLidas ? `<span class="alerta">${estado.naoLidas} notificaç${estado.naoLidas > 1 ? 'ões' : 'ão'}</span>` : '',
+        !conexao.online && pareado() ? 'PC desconectado' : '',
+      ].filter(Boolean).join('<i class="ponto"></i>');
+    }
+
 const RELOGIOS = {
+  // arte da bandeira de SC com o PM ao fundo, hora branca e laranja
+  tatico: { montar: el => montarArte(el, 'tatico'), atualizar: (el, d) => atualizarArte(el, d) },
+  // o fantasminha com a bandeira de SC
+  fantasma: { montar: el => montarArte(el, 'fantasma'), atualizar: (el, d) => atualizarArte(el, d) },
   // estilo relógio digital de LCD (tipo Nixon Regulus)
   lcd: {
     montar: el => el.innerHTML = `<div class="rel-lcd">
@@ -989,6 +1026,8 @@ function trocarFase() {
 
 function trocarEstilo(novo) {
   estilo = novo; guardar('sd_estilo', novo);
+  $('#telaRelogio').classList.toggle('modo-arte', novo === 'tatico' || novo === 'fantasma');
+  $('#telaRelogio').dataset.arte = novo;
   RELOGIOS[estilo].montar($('#aodRelogio'));
   atualizarRelogio();
 }
@@ -999,6 +1038,7 @@ function atualizarRelogio() {
   $('#aodData').textContent = COM_DATA_PROPRIA.includes(estilo) ? '' : dataExtenso(d);
   const s = estado.stats;
   const pend = pendentes().length;
+  $('#aodInfo').hidden = estilo === 'tatico' || estilo === 'fantasma'; // esse relógio mostra CPU/RAM do jeito dele
   $('#aodInfo').innerHTML = [
     COM_DATA_PROPRIA.includes(estilo) ? '' : diaOuNoite(d),
     s ? `CPU ${s.cpu}% · RAM ${s.ram}%` : '',

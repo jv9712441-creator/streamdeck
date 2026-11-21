@@ -225,3 +225,48 @@ textarea { min-height: 120px; resize: vertical; }
 #marca img { height: 22px; width: auto; }
 @media (orientation: landscape) and (max-height: 560px) { #marca { bottom: calc(42px + env(safe-area-inset-bottom)); } }
 .lista, #grade { padding-bottom: 40px; }
+
+/* relógio "tático": arte de fundo com a hora por cima */
+@font-face { font-family: "Oswald"; src: url("fontes/Oswald-500.woff2") format("woff2"); font-weight: 500; font-display: swap; }
+@font-face { font-family: "MontserratBlack"; src: url("fontes/Montserrat-900.woff2") format("woff2"); font-weight: 900; font-display: swap; }
+#telaRelogio.modo-arte { background: #000 center 30% / cover no-repeat; }
+#telaRelogio[data-arte="tatico"] { background-image: linear-gradient(90deg, #0000 0, #0000 calc(150vh - 40vh), #000 150vh), url("fundo-tatico.jpg"); background-size: 100% 100%, auto 100%; background-position: 0 0, left center; }
+#telaRelogio[data-arte="fantasma"] { background-image: url("fundo-fantasma.jpg"); background-position: center center; }
+#telaRelogio.modo-arte #aodConteudo { position: absolute; inset: 0; display: block; }
+.rel-tatico { position: absolute; inset: 0; color: #e4e4e7; }
+.tat-dir { position: absolute; left: 44%; right: 2%; top: 30%; text-align: center; }
+.tat-hora { display: flex; justify-content: center; font-family: "MontserratBlack", system-ui, sans-serif; font-weight: 900; font-size: min(17vw, 36vh); line-height: .95; letter-spacing: -.01em; filter: drop-shadow(0 6px 22px #000c); }
+.tat-hora span { background-image: url("textura-gasta.png"); background-size: 240px; -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; color: transparent; padding-right: .04em; }
+.tat-hora .b { background-color: #f4f4f5; }
+.tat-hora .l { background-color: #ff6a13; background-position: 60px 30px; }
+.tat-info { margin-top: 2.4vh; display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: .2em .9em; font-size: min(2.4vw, 4.4vh); color: #e4e4e7; font-variant-numeric: tabular-nums; }
+.tat-info .ponto { width: .32em; height: .32em; border-radius: 50%; background: #ff6a13; }
+.tat-info .alerta { color: #ff6a13; }
+.tat-esq { position: absolute; left: 4%; top: 52%; width: 34%; }
+.tat-turno { display: flex; align-items: center; gap: .7em; font-family: "Oswald", system-ui, sans-serif; font-weight: 500; text-transform: uppercase; letter-spacing: .34em; font-size: min(2.3vw, 4.6vh); color: #fafafa; }
+.tat-turno::before { content: ""; width: 1.8em; height: 2px; background: #ff6a13; }
+.tat-data { margin-top: 1.4vh; padding-left: .7em; border-left: 3px solid #ff6a13; display: flex; flex-direction: column; font-size: min(1.9vw, 3.8vh); color: #d4d4d8; line-height: 1.35; }
+.tat-data b { color: #fafafa; font-weight: 600; }
+.tat-frase { position: absolute; left: 4%; top: 75%; width: 38%; margin: 0; padding-bottom: 1.4vh; border-bottom: 2px solid #ff6a13; font-family: "Oswald", system-ui, sans-serif; font-weight: 500; text-transform: uppercase; letter-spacing: .05em; font-size: min(1.75vw, 3.6vh); line-height: 1.4; color: #c4c4c8; text-shadow: 0 2px 8px #000; }
+.tat-frase em { font-style: normal; }
+
+/* variação do fantasma: números inclinados, frase em itálico com o final em laranja */
+.rel-tatico.fantasma .tat-dir { left: 47%; right: 2%; top: 23%; }
+.rel-tatico.fantasma .tat-hora { font-style: italic; font-size: min(18vw, 40vh); }
+.rel-tatico.fantasma .tat-info { margin-top: 6.5vh; }
+.rel-tatico.fantasma .tat-esq { left: 2.5%; top: 24%; width: 24%; }
+.tat-data span { white-space: nowrap; }
+.rel-tatico.fantasma .tat-data { font-size: min(1.7vw, 3.4vh); }
+.rel-tatico.fantasma .tat-frase { top: auto; bottom: 12%; left: 6%; width: 36%; font-style: italic; border-bottom: 0; color: #e4e4e7; }
+.rel-tatico.fantasma .tat-frase em { color: #ff6a13; }
+@media (orientation: portrait) {
+  #telaRelogio[data-arte="tatico"] { background-position: 22% center; }
+  #telaRelogio[data-arte="fantasma"] { background-position: 32% center; }
+  .rel-tatico .tat-dir, .rel-tatico.fantasma .tat-dir { left: 4%; right: 4%; top: 30%; }
+  .rel-tatico .tat-hora, .rel-tatico.fantasma .tat-hora { font-size: 30vw; }
+  .rel-tatico .tat-info, .rel-tatico.fantasma .tat-info { font-size: 3.8vw; margin-top: 2vh; }
+  .rel-tatico .tat-esq, .rel-tatico.fantasma .tat-esq { left: 7%; top: 12%; width: 86%; }
+  .tat-turno { font-size: 4.2vw; }
+  .tat-data { font-size: 3.8vw; }
+  .rel-tatico .tat-frase, .rel-tatico.fantasma .tat-frase { top: auto; bottom: 12%; left: 7%; width: 86%; font-size: 3.6vw; }
+}

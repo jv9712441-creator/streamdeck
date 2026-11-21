@@ -46,6 +46,13 @@ function carregarConfig() {
   c.porta ??= 8765;
   c.colunas ??= 3;
   c.tempoRespostaPermissao ??= 60;
+  // ajustes pedidos depois que o config já existia (cada um roda uma vez só)
+  c.migracoes ??= [];
+  if (!c.migracoes.includes('mixer-steelseries')) {
+    for (const p of c.paginas || []) for (const b of p.botoes || [])
+      if (b.acao?.tipo === 'app' && /^sndvol(\.exe)?$/i.test(String(b.acao.caminho).trim())) { b.acao = { tipo: 'app', caminho: 'app:SteelSeries GG' }; b.icone = '🎧'; }
+    c.migracoes.push('mixer-steelseries'); mudou = true;
+  }
   if (mudou) salvarConfig(c);
   return c;
 }
@@ -209,7 +216,15 @@ async function executar(b, extra = {}) {
     case 'app': {
       const alvo = expandirVariaveis(a.caminho || '').trim();
       if (!alvo) throw new Error(SEM_CAMINHO);
-      if (WINDOWS) {
+      if (WINDOWS && /^app:/i.test(alvo)) {
+        // "app:Nome" abre pelo nome que aparece no menu Iniciar (não importa onde foi instalado)
+        const nome = alvo.slice(4).trim();
+        const r = await rodarPowerShell(`$l = Get-StartApps; $a = $l | Where-Object { $_.Name -eq ${psAspas(nome)} } | Select-Object -First 1;
+          if (-not $a) { $a = $l | Where-Object { $_.Name -like ${psAspas('*' + nome + '*')} } | Select-Object -First 1 };
+          if (-not $a) { Write-Output 'NAO_ACHEI'; exit 1 }; Start-Process ('shell:AppsFolder\' + $a.AppID)`, 15000);
+        if (r.saida.includes('NAO_ACHEI')) throw new Error(`Não achei "${nome}" no menu Iniciar do PC.`);
+        if (r.codigo !== 0) throw new Error(r.saida.trim() || 'Não consegui abrir');
+      } else if (WINDOWS) {
         let s = `Start-Process -FilePath ${psAspas(alvo)}`;
         if (a.argumentos) s += ` -ArgumentList ${psAspas(expandirVariaveis(a.argumentos))}`;
         // programas como o OBS só abrem direito se rodarem de dentro da própria pasta

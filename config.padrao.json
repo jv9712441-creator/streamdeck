@@ -399,11 +399,11 @@
         },
         {
           "nome": "Mixer de volume",
-          "icone": "🎚️",
+          "icone": "🎧",
           "cor": "#16a34a",
           "acao": {
             "tipo": "app",
-            "caminho": "sndvol"
+            "caminho": "app:SteelSeries GG"
           }
         },
         {
@@ -508,11 +508,11 @@
         },
         {
           "nome": "Mixer de volume",
-          "icone": "🎚️",
+          "icone": "🎧",
           "cor": "#16a34a",
           "acao": {
             "tipo": "app",
-            "caminho": "sndvol"
+            "caminho": "app:SteelSeries GG"
           }
         },
         {
@@ -731,5 +731,8 @@
     "host": "127.0.0.1",
     "porta": 4455,
     "senha": ""
-  }
+  },
+  "migracoes": [
+    "mixer-steelseries"
+  ]
 }

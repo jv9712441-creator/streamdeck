@@ -68,7 +68,7 @@ function conectar() {
     estado.versaoCarregada = d.config.versao;
     estado.config = d.config; estado.notifs = d.notifs; estado.stats = d.stats; estado.atualizacao = d.atualizacao;
     renderizar(); renderizarUso(); renderizarListas(); renderizarPC();
-    if (pendentes().length) abrirPermissoes();
+    if (pendentes().length && estado.tela !== TELA.relogio) abrirPermissoes();
   });
   fonte.addEventListener('config', e => { estado.config = JSON.parse(e.data); renderizar(); });
   fonte.addEventListener('stats', e => { estado.stats = JSON.parse(e.data); renderizarUso(); renderizarPC(); });
@@ -236,10 +236,23 @@ async function apertar(b, el) {
 }
 
 function marcar(el, ok) {
+  el.classList.remove('ok', 'erro'); void el.offsetWidth; // reinicia a animação
   el.classList.add(ok ? 'ok' : 'erro');
   if (!ok) vibrar([40, 60, 40]);
   setTimeout(() => el.classList.remove('ok', 'erro'), 700);
 }
+
+// onda saindo do ponto onde o dedo tocou
+$('#grade').addEventListener('pointerdown', e => {
+  const t = e.target.closest('.tecla');
+  if (!t) return;
+  const r = t.getBoundingClientRect(), lado = Math.max(r.width, r.height) * 2.2;
+  const o = document.createElement('span');
+  o.className = 'onda';
+  o.style.cssText = `width:${lado}px;height:${lado}px;left:${e.clientX - r.left - lado / 2}px;top:${e.clientY - r.top - lado / 2}px`;
+  t.append(o);
+  setTimeout(() => o.remove(), 600);
+});
 
 function renderizarUso() {
   const s = estado.stats;
@@ -250,7 +263,7 @@ function renderizarUso() {
 
 const TIPOS = {
   app: { nome: 'Abrir app ou site', campos: [
-    ['caminho', 'Programa, arquivo ou site', 'texto', 'Ex.: notepad, chrome, https://youtube.com, C:\\Jogos\\jogo.exe, spotify:'],
+    ['caminho', 'Programa, arquivo ou site', 'texto', 'Ex.: app:SteelSeries GG (nome do menu Iniciar), notepad, https://youtube.com, C:\\Jogos\\jogo.exe, spotify:'],
     ['argumentos', 'Argumentos (opcional)', 'texto', '']] },
   comando: { nome: 'Rodar comando', campos: [
     ['comando', 'Comando', 'area', 'Ex.: Get-Date, ipconfig, shutdown /r /t 0'],
@@ -410,10 +423,13 @@ function chegouNotif(n) {
 
   if (nova && n.status === 'pendente') {
     vibrar([200, 100, 200]);
-    abrirPermissoes();
+    if (estado.tela !== TELA.relogio) abrirPermissoes(); // no relógio, o pedido aparece na ilha
   } else if (nova) {
     vibrar(60);
-    if (estado.tela !== TELA.notificacoes) { estado.naoLidas++; aviso(`${n.origem}: ${n.titulo}`); }
+    if (estado.tela !== TELA.notificacoes) {
+      estado.naoLidas++;
+      if (estado.tela === TELA.relogio) mostrarNaIlha(n); else aviso(`${n.origem}: ${n.titulo}`);
+    }
   }
   renderizarListas();
   verSeVolta();
@@ -456,6 +472,7 @@ function renderizarListas() {
     </div>`).join('');
 
   renderizarBadges();
+  atualizarIlha();
 }
 
 function atualizarContagens() {
@@ -488,6 +505,68 @@ function decidir(id, decisao) {
 
 $('#btnLimparNotifs').onclick = () => api('limpar', { tipo: 'avisos' }).catch(e => aviso(e.message, true));
 $('#btnLimparPedidos').onclick = () => api('limpar', { tipo: 'pedidos' }).catch(e => aviso(e.message, true));
+
+// ------------------------------------------------------------ ilha dinâmica (no relógio)
+// Pedido de permissão: abre com Permitir/Negar até você responder.
+// Notificação: abre por 5 s e depois encolhe mostrando quantas tem.
+
+const ilha = { info: null, ate: 0, timer: null, mostrando: null };
+
+function mostrarNaIlha(n) {
+  ilha.info = n; ilha.ate = Date.now() + 5000;
+  clearTimeout(ilha.timer);
+  ilha.timer = setTimeout(atualizarIlha, 5100);
+  atualizarIlha();
+}
+
+function atualizarIlha() {
+  const el = $('#ilha');
+  const pend = pendentes();
+  let n = null, pedido = false;
+  if (pend.length) { n = pend[0]; pedido = true; }
+  else if (ilha.info && Date.now() < ilha.ate) n = ilha.info;
+
+  const visivel = !!n || estado.naoLidas > 0;
+  if (!visivel) { el.hidden = true; ilha.mostrando = null; return; }
+  if (el.hidden) { el.hidden = false; el.classList.remove('entrando'); void el.offsetWidth; el.classList.add('entrando'); }
+
+  el.classList.toggle('pedido', pedido);
+  if (n) {
+    $('#ilhaOrigem').textContent = n.origem;
+    $('#ilhaTitulo').textContent = n.titulo;
+    $('#ilhaMsg').textContent = n.mensagem || '';
+    $('#ilhaMsg').hidden = !n.mensagem;
+    $('#ilhaBotoes').hidden = !pedido;
+    el.dataset.id = n.id;
+    el.style.setProperty('--altura', (pedido ? 116 : 62) + (n.mensagem ? 22 : 0) + 'px');
+    el.classList.add('cheia');
+    ilha.mostrando = n.id;
+  } else {
+    el.classList.remove('cheia');
+    $('#ilhaIcone').textContent = '🔔';
+    $('#ilhaResumo').textContent = estado.naoLidas === 1 ? '1 notificação' : `${estado.naoLidas} notificações`;
+    ilha.mostrando = null;
+  }
+  atualizarTempoIlha();
+}
+
+function atualizarTempoIlha() {
+  const n = estado.notifs.find(x => x.id === ilha.mostrando);
+  if (!n) return;
+  if (n.status === 'pendente') {
+    const fim = (n._recebido || Date.now()) + (n.expira - n.criado);
+    $('#ilhaTempo').textContent = Math.max(0, Math.round((fim - Date.now()) / 1000)) + 's';
+  } else $('#ilhaTempo').textContent = hora(n.criado);
+}
+setInterval(atualizarTempoIlha, 1000);
+
+$('#ilha').addEventListener('click', e => {
+  e.stopPropagation();
+  const b = e.target.closest('[data-ilha]');
+  if (b) return decidir($('#ilha').dataset.id, b.dataset.ilha);
+  if (!pendentes().length) irParaTela(TELA.notificacoes); // tocar na notificação abre a lista
+});
+['touchstart', 'touchend', 'mousedown', 'mouseup'].forEach(t => $('#ilha').addEventListener(t, e => e.stopPropagation()));
 
 // ------------------------------------------------------------ tela do PC (estado e atualização)
 
@@ -789,13 +868,27 @@ setInterval(() => {
   $('#aodConteudo').style.transform = `translate(${Math.round(Math.random() * 30 - 15)}px, ${Math.round(Math.random() * 40 - 20)}px)`;
 }, 60000);
 
-$('#telaRelogio').addEventListener('click', e => {
-  if (e.target.closest('button')) return;
-  vibrar(8);
-  trocarEstilo(ESTILOS[(ESTILOS.indexOf(estilo) + 1) % ESTILOS.length]);
-  menuApagado(true);
-  manterTelaLigada(true);
-});
+// Arraste para cima: próximo relógio. Para baixo: o anterior. Um toque só acorda a barra de baixo.
+(() => {
+  const tela = $('#telaRelogio');
+  let x0 = null, y0 = null;
+  const inicio = (x, y, alvo) => { if (alvo.closest('button')) return; x0 = x; y0 = y; };
+  const fim = (x, y) => {
+    if (y0 == null) return;
+    const dx = x - x0, dy = y - y0;
+    x0 = y0 = null;
+    menuApagado(true);
+    manterTelaLigada(true);
+    if (Math.abs(dy) < 50 || Math.abs(dy) < Math.abs(dx) * 1.2) return; // foi toque ou deslize para o lado
+    vibrar(8);
+    const passo = dy < 0 ? 1 : -1;
+    trocarEstilo(ESTILOS[(ESTILOS.indexOf(estilo) + passo + ESTILOS.length) % ESTILOS.length]);
+  };
+  tela.addEventListener('touchstart', e => inicio(e.touches[0].clientX, e.touches[0].clientY, e.target), { passive: true });
+  tela.addEventListener('touchend', e => fim(e.changedTouches[0].clientX, e.changedTouches[0].clientY));
+  tela.addEventListener('mousedown', e => inicio(e.clientX, e.clientY, e.target));
+  tela.addEventListener('mouseup', e => fim(e.clientX, e.clientY));
+})();
 
 // tela cheia trava o celular deitado (toque de novo para sair)
 $('#btnTelaCheia').onclick = async () => {

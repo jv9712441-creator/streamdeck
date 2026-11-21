@@ -23,8 +23,17 @@
       <div id="aodData"></div>
       <div id="aodInfo"></div>
     </div>
-    <div id="aodDica">toque para trocar o estilo · deslize para os botões</div>
+    <div id="aodDica">arraste para cima para trocar o relógio · para o lado, os botões</div>
     <button id="btnTelaCheia" aria-label="Tela cheia">⛶</button>
+    <div id="ilha" hidden>
+      <div class="ilha-compacta"><span id="ilhaIcone">🔔</span><b id="ilhaResumo"></b></div>
+      <div class="ilha-cheia">
+        <div class="ilha-meta"><span id="ilhaOrigem"></span><span id="ilhaTempo"></span></div>
+        <b id="ilhaTitulo"></b>
+        <p id="ilhaMsg"></p>
+        <div class="linha" id="ilhaBotoes"><button class="perigo" data-ilha="negar">Negar</button><button class="sucesso" data-ilha="permitir">Permitir</button></div>
+      </div>
+    </div>
   </section>
 
   <!-- 2. Botões -->
@@ -95,6 +104,8 @@
     </div>
   </section>
 </div>
+
+<div id="marca" aria-hidden="true"><img src="marca.png" alt=""><span>feito por Santi</span></div>
 
 <nav id="menu">
   <button data-ir="0" aria-label="Relógio">🕐</button>

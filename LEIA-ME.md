@@ -16,7 +16,7 @@ Para abrir junto com o Windows: `Win+R` → `shell:startup` → crie ali um atal
 
 O app é dividido em telas. Deslize para o lado ou toque nos ícones de baixo:
 
-1. **🕐 Relógio** (abre sempre nele): tela preta tipo always on display, feita para o celular deitado. Toque para trocar o estilo: LCD, duas cores, números grandes, digital, minimalista, analógico, por extenso e pomodoro. O ⛶ no canto põe em tela cheia e trava deitado. A tela fica acesa e o relógio se mexe um pouquinho a cada minuto para não marcar.
+1. **🕐 Relógio** (abre sempre nele): notificações e pedidos de permissão aparecem no topo, numa "ilha" (os pedidos com Permitir/Negar ali mesmo). tela preta tipo always on display, feita para o celular deitado. Arraste para cima para trocar o estilo (para baixo volta): LCD, duas cores, números grandes, digital, minimalista, analógico, por extenso e pomodoro. O ⛶ no canto põe em tela cheia e trava deitado. A tela fica acesa e o relógio se mexe um pouquinho a cada minuto para não marcar.
 2. **🎛️ Botões**: toque para executar. As abas de cima são as suas páginas de botões. No **✏️** você muda nome, ícone (emoji), cor e o que cada botão faz; o **+** cria um novo e "Página…" cria, renomeia, move e apaga páginas.
 3. **🔔 Notificações**: avisos do PC e do Claude.
 4. **🛡️ Permissões**: pedidos com **Permitir / Negar**. Quando chega um, o celular vibra, pula sozinho para esta tela e depois volta para onde você estava.
@@ -36,7 +36,7 @@ Botões que dependem de você (Dashboard, Clientes, Database, Jogo favorito) vê
 
 | Tipo | Exemplo |
 |---|---|
-| Abrir app ou site | `notepad`, `chrome`, `https://youtube.com`, `spotify:`, `C:\Jogos\jogo.exe` |
+| Abrir app ou site | `app:SteelSeries GG` (pelo nome do menu Iniciar), `notepad`, `chrome`, `https://youtube.com`, `spotify:`, `C:\Jogos\jogo.exe` |
 | Rodar comando | `shutdown /r /t 0` (cmd) ou qualquer coisa de PowerShell. Pode mostrar o resultado no celular |
 | Atalho de teclado | `ctrl+shift+esc`, `win+d`, `alt+tab`, `f5`, `playpause`, `proxima`, `anterior`, `volumemais`, `volumemenos`, `mudo` |
 | Enviar texto pro PC | digita no celular e vai para o Ctrl+V do PC (ou já cola sozinho) |

@@ -1,9 +1,9 @@
 {
-  "versao": "1.3.0",
-  "notas": "Command Center: páginas HOME, VILTRUN, WORK, SYSTEM, GAMING, STREAM e AUDIO, modos, OBS, microfone e relógios novos (LCD, duas cores, números grandes).",
+  "versao": "1.4.0",
+  "notas": "Ilha dinâmica no relógio (notificações e Permitir/Negar), arrastar para cima troca o relógio, animações nos botões, Mixer abre o SteelSeries GG e marca feito por Santi.",
   "arquivos": {
-    "LEIA-ME.md": "6cecb7a23a6ebc8b4db3ea1d97f5ea21d3c1bcfe8cbb925b1c1100efdd102727",
-    "config.padrao.json": "2d75493c2ae7d3bd371af4fb00cdefff8f79aef0e8789afe0256d4473e2ee2cc",
+    "LEIA-ME.md": "b31dfdef819d00c10d2b6dceef2828650b330fce3d8f36eaca054cda222d0ef7",
+    "config.padrao.json": "8ce406cbe7dda5ce029a532ccb21421ffab28a4bd49b11f5296d27e13b20ac26",
     "ferramentas/microfone.ps1": "38c45b941307f8b90db92abc74574b2f7e562f2c6c600bd60819236650b5be7a",
     "ferramentas/notificar.ps1": "1e2bf6ac57ca9cae6128d2fd420b355990b7681bb048660d1dd2b423f9ff7f3c",
     "ferramentas/teclas.ps1": "5776fa830eb5a6d507303165cad246c246b88c2cbc7a8274ec8080e6bff06e7f",
@@ -11,15 +11,16 @@
     "hooks/instalar-claude.js": "502a2291011c8c68258a279662095d7cd75df0f73a8f2b062c97feb95a222faf",
     "iniciar.bat": "3ca810884b4d26ba6d9b0d7997d54b9305770f9c73812bc748bd51a3db1e4f79",
     "public/acordado.mp4": "de501c3e05673785ca4d4334d7e0cee17395bf859269cdbfedc5cf86f4c29b61",
-    "public/app.css": "7b58252ff029eb977cdc5f3c822706dfc978055252da6e3aee7d400779374eba",
-    "public/app.js": "1660eba8b37f83c5fc0ecfb80f03e0923ee9a971314409eb3f93481dbb398f1f",
+    "public/app.css": "87815453599acb726188ae8e28daaede7a37c1fc5642ee9ab6dd650c239774da",
+    "public/app.js": "bb54f3f1d4fa5adfff12ac324baca5fbc2a1b46ecd1bdffa1bb045386e21b204",
     "public/fontes/DSEG14Classic-Regular.woff2": "327c24d55049422f513d59fddc3919bba72186ea6b42ea8e214be06e0faa0530",
     "public/fontes/DSEG7Classic-Bold.woff2": "ec2e7499bc8ac8f8225e1fb6a5d45ff6083c6e2b0efbaf99d37fa7b42a5767ff",
     "public/fontes/LICENCA-DSEG.txt": "c6ee0567859cb7cc8d992149bbd96ad359ef65fb7355f7feae0547555ffacd23",
     "public/icone.svg": "4f5691af4fa004f6ff1bdfc4d716fe5719aa73f9062a719f1a43780cfe329a66",
-    "public/index.html": "6f3d94b6190a6802b211f4e73081db359d2224200b84063ef4d494a5b1a19105",
+    "public/index.html": "2968109625ee4868e348faedb70f2f34d867e303d20370a0e3ab899ff8cf1b5f",
     "public/manifest.webmanifest": "074f0083661dbe579eaffad940421cd1c835b50e708d368404f67f08733dc6ce",
-    "server.js": "cd89ec5ced27413c7810117dcc1444ef8a8cf1b7fcba4db25b9e650849cb8964",
-    "versao.json": "1ad21a0c094e8982f703f1a7d1c7b8f9f745271d3c8abbb22030c7e12f91e5b8"
+    "public/marca.png": "49426210cfdc15e987734ab3f8e27b22254fd1106cc910fc337f04cce3cf3365",
+    "server.js": "c483dfc3ba8318949d3bde25e59a10b8537e4f753d366cea03aaa211097111a0",
+    "versao.json": "c3a56ea4773e86e64fac611aaa3d4bf4c86ecd162ed14d810a423536b85131c1"
   }
 }

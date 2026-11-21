@@ -46,6 +46,16 @@ Também dá para editar tudo direto no `config.json` (com o servidor fechado).
   .\ferramentas\notificar.ps1 -Titulo "Posso apagar a pasta temp?" -Perguntar   # sai com 0 se permitir
   ```
 
+## Celular deitado
+
+É só girar o celular (com a rotação automática ligada). Deitado, os botões se ajustam para caber todos na tela sem rolar. Se preferir um número fixo de colunas, entre no ✏️ com o celular deitado e use **Colunas − / +** (o "Auto" volta ao ajuste sozinho). Em pé e deitado guardam a escolha separado.
+
+## Atualizações
+
+Não precisa baixar de novo. Quando sair versão nova, aparece uma faixa azul no topo do celular: toque, confirme e o PC baixa, confere e reinicia o Stream Deck sozinho. Seus botões e o pareamento continuam iguais. Para procurar na hora, entre no ✏️ e toque no número da versão (ex.: `v1.1.0`).
+
+As atualizações vêm de https://github.com/jv9712441-creator/streamdeck
+
 ## Bom saber
 
 - **Tela apagando no modo relógio**: como a página é `http`, o Chrome não libera o recurso oficial de manter a tela acesa. Eu uso um vídeo mudo em loop no lugar. Se mesmo assim apagar, abra `chrome://flags` no celular, procure **Insecure origins treated as secure**, adicione `http://IP-DO-PC:8765` e reinicie o Chrome.

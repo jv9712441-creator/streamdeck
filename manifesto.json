@@ -2,7 +2,7 @@
   "versao": "1.1.0",
   "notas": "Modo deitado e atualização automática.",
   "arquivos": {
-    "LEIA-ME.md": "840d14d3ff1ca8f7c8fa6669c521f018011eb42ccda0b05bee92086fc073b5cc",
+    "LEIA-ME.md": "e71ff8644cc115591759698c331304650c40c109910dac34575984509baf76ec",
     "config.padrao.json": "e158ab934aa12af591bd96d408f5efe31aa82ec5f0a92a9c345f2a7f3c059286",
     "ferramentas/notificar.ps1": "1e2bf6ac57ca9cae6128d2fd420b355990b7681bb048660d1dd2b423f9ff7f3c",
     "ferramentas/teclas.ps1": "5776fa830eb5a6d507303165cad246c246b88c2cbc7a8274ec8080e6bff06e7f",

@@ -1,0 +1,49 @@
+{
+  "porta": 8765,
+  "token": "",
+  "colunas": 3,
+  "tempoRespostaPermissao": 60,
+  "espelharNotificacoesWindows": true,
+  "ignorarApps": [],
+  "abrirPareamentoAoIniciar": true,
+  "urlAtualizacao": "https://raw.githubusercontent.com/jv9712441-creator/streamdeck/main",
+  "paginas": [
+    {
+      "nome": "Principal",
+      "botoes": [
+        { "nome": "Navegador", "icone": "🌐", "cor": "#2563eb", "acao": { "tipo": "app", "caminho": "https://google.com" } },
+        { "nome": "Spotify", "icone": "🎵", "cor": "#16a34a", "acao": { "tipo": "app", "caminho": "spotify:" } },
+        { "nome": "Discord", "icone": "💬", "cor": "#5865f2", "acao": { "tipo": "app", "caminho": "%LOCALAPPDATA%\\Discord\\Update.exe", "argumentos": "--processStart Discord.exe" } },
+        { "nome": "VS Code", "icone": "🧑‍💻", "cor": "#0e7490", "acao": { "tipo": "app", "caminho": "code" } },
+        { "nome": "Arquivos", "icone": "📁", "cor": "#ca8a04", "acao": { "tipo": "app", "caminho": "explorer" } },
+        { "nome": "Gerenciador", "icone": "📊", "cor": "#475569", "acao": { "tipo": "atalho", "teclas": "ctrl+shift+esc" } },
+        { "nome": "Print", "icone": "✂️", "cor": "#7c3aed", "acao": { "tipo": "atalho", "teclas": "win+shift+s" } },
+        { "nome": "Bloquear PC", "icone": "🔒", "cor": "#b91c1c", "confirmar": true, "acao": { "tipo": "comando", "comando": "rundll32.exe user32.dll,LockWorkStation", "shell": "cmd" } },
+        { "nome": "Relógio", "icone": "🕐", "cor": "#111827", "acao": { "tipo": "relogio", "estilo": "digital" } }
+      ]
+    },
+    {
+      "nome": "Mídia",
+      "botoes": [
+        { "nome": "Anterior", "icone": "⏮️", "cor": "#334155", "acao": { "tipo": "atalho", "teclas": "anterior" } },
+        { "nome": "Play/Pause", "icone": "⏯️", "cor": "#16a34a", "acao": { "tipo": "atalho", "teclas": "playpause" } },
+        { "nome": "Próxima", "icone": "⏭️", "cor": "#334155", "acao": { "tipo": "atalho", "teclas": "proxima" } },
+        { "nome": "Volume −", "icone": "🔉", "cor": "#334155", "acao": { "tipo": "atalho", "teclas": "volumemenos" } },
+        { "nome": "Mudo", "icone": "🔇", "cor": "#b91c1c", "acao": { "tipo": "atalho", "teclas": "mudo" } },
+        { "nome": "Volume +", "icone": "🔊", "cor": "#334155", "acao": { "tipo": "atalho", "teclas": "volumemais" } }
+      ]
+    },
+    {
+      "nome": "Ferramentas",
+      "botoes": [
+        { "nome": "Texto → PC", "icone": "📤", "cor": "#0891b2", "acao": { "tipo": "texto-pc", "colar": false } },
+        { "nome": "Clipboard do PC", "icone": "📥", "cor": "#0891b2", "acao": { "tipo": "clipboard-pc" } },
+        { "nome": "Área de trabalho", "icone": "🖥️", "cor": "#475569", "acao": { "tipo": "atalho", "teclas": "win+d" } },
+        { "nome": "IP do PC", "icone": "📡", "cor": "#475569", "acao": { "tipo": "comando", "comando": "Get-NetIPAddress -AddressFamily IPv4 | Where-Object { $_.IPAddress -notlike '127.*' } | Select-Object InterfaceAlias, IPAddress | Format-Table -AutoSize | Out-String", "mostrarSaida": true } },
+        { "nome": "Pomodoro", "icone": "🍅", "cor": "#dc2626", "acao": { "tipo": "relogio", "estilo": "pomodoro" } },
+        { "nome": "Desligar em 1 min", "icone": "⏻", "cor": "#b91c1c", "confirmar": true, "acao": { "tipo": "comando", "comando": "shutdown /s /t 60", "shell": "cmd" } },
+        { "nome": "Cancelar desligar", "icone": "✋", "cor": "#16a34a", "acao": { "tipo": "comando", "comando": "shutdown /a", "shell": "cmd" } }
+      ]
+    }
+  ]
+}

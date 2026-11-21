@@ -1,0 +1,545 @@
+'use strict';
+// Stream Deck pelo celular — servidor que roda no PC.
+// Sem dependências: só precisa do Node.js (versão 22 ou mais nova).
+// Rodar: node server.js
+
+const http = require('http');
+const fs = require('fs');
+const path = require('path');
+const os = require('os');
+const crypto = require('crypto');
+const { spawn, exec } = require('child_process');
+
+const RAIZ = __dirname;
+const CONFIG = path.join(RAIZ, 'config.json');
+const CONFIG_PADRAO = path.join(RAIZ, 'config.padrao.json');
+const PUBLICO = path.join(RAIZ, 'public');
+const WINDOWS = process.platform === 'win32';
+
+// ---------------------------------------------------------------- config
+
+function salvarConfig(c) {
+  const tmp = CONFIG + '.tmp';
+  fs.writeFileSync(tmp, JSON.stringify(c, null, 2));
+  fs.renameSync(tmp, CONFIG);
+}
+
+function garantirIds(c) {
+  let mudou = false;
+  for (const p of c.paginas || []) {
+    if (!p.id) { p.id = novoId(); mudou = true; }
+    for (const b of p.botoes || []) if (!b.id) { b.id = novoId(); mudou = true; }
+  }
+  return mudou;
+}
+
+function novoId() { return crypto.randomBytes(4).toString('hex'); }
+
+function carregarConfig() {
+  if (!fs.existsSync(CONFIG)) fs.copyFileSync(CONFIG_PADRAO, CONFIG);
+  const c = JSON.parse(fs.readFileSync(CONFIG, 'utf8'));
+  let mudou = garantirIds(c);
+  // opções novas que vierem em atualizações entram com o valor padrão, sem mexer nos seus botões
+  const padrao = JSON.parse(fs.readFileSync(CONFIG_PADRAO, 'utf8'));
+  for (const [k, v] of Object.entries(padrao)) if (k !== 'paginas' && !(k in c)) { c[k] = v; mudou = true; }
+  if (!c.token) { c.token = crypto.randomBytes(16).toString('hex'); mudou = true; }
+  c.porta ??= 8765;
+  c.colunas ??= 3;
+  c.tempoRespostaPermissao ??= 60;
+  if (mudou) salvarConfig(c);
+  return c;
+}
+
+let cfg = carregarConfig();
+
+const VERSAO = JSON.parse(fs.readFileSync(path.join(RAIZ, 'versao.json'), 'utf8')).versao;
+
+function configPublica() {
+  return { paginas: cfg.paginas, colunas: cfg.colunas, colunasDeitado: cfg.colunasDeitado || 0,
+    nomePC: os.hostname(), plataforma: process.platform, versao: VERSAO };
+}
+
+function acharBotao(id) {
+  for (const p of cfg.paginas) for (const b of p.botoes) if (b.id === id) return b;
+  return null;
+}
+
+// ---------------------------------------------------------------- eventos ao vivo (SSE)
+
+const clientes = new Set();
+
+function enviar(evento, dados, so) {
+  const msg = `event: ${evento}\ndata: ${JSON.stringify(dados)}\n\n`;
+  for (const res of so ? [so] : clientes) res.write(msg);
+}
+
+setInterval(() => { for (const res of clientes) res.write(': ping\n\n'); }, 15000);
+
+// ---------------------------------------------------------------- uso de CPU e RAM
+
+let ultimaCpu = os.cpus();
+let stats = { cpu: 0, ram: 0, ramTotalGB: +(os.totalmem() / 1073741824).toFixed(1) };
+
+function medir() {
+  const agora = os.cpus();
+  let ocioso = 0, total = 0;
+  agora.forEach((c, i) => {
+    const a = ultimaCpu[i]?.times || c.times;
+    const t = c.times;
+    const dt = (t.user - a.user) + (t.nice - a.nice) + (t.sys - a.sys) + (t.irq - a.irq) + (t.idle - a.idle);
+    total += dt; ocioso += t.idle - a.idle;
+  });
+  ultimaCpu = agora;
+  stats = {
+    cpu: total ? Math.round(100 * (1 - ocioso / total)) : 0,
+    ram: Math.round(100 * (1 - os.freemem() / os.totalmem())),
+    ramTotalGB: stats.ramTotalGB,
+  };
+  enviar('stats', stats);
+}
+setInterval(medir, 2000);
+
+// ---------------------------------------------------------------- notificações e pedidos de permissão
+
+const notifs = [];            // mais nova primeiro
+const esperando = new Map();  // id -> função que responde quem está aguardando
+
+function criarNotif({ titulo, mensagem, origem, perguntar, esperar, tempo }) {
+  const n = {
+    id: novoId(),
+    titulo: String(titulo || 'Notificação').slice(0, 200),
+    mensagem: String(mensagem || '').slice(0, 4000),
+    origem: String(origem || 'PC').slice(0, 60),
+    perguntar: !!perguntar,
+    status: perguntar ? 'pendente' : 'info',
+    criado: Date.now(),
+    expira: perguntar ? Date.now() + 1000 * (tempo || cfg.tempoRespostaPermissao) : null,
+  };
+  notifs.unshift(n);
+  while (notifs.length > 60) notifs.pop();
+  enviar('notif', n);
+  log(`🔔 ${n.origem}: ${n.titulo}`);
+  return n;
+}
+
+function resolverNotif(id, status) {
+  const n = notifs.find(x => x.id === id);
+  if (!n || n.status !== 'pendente') return false;
+  n.status = status;
+  enviar('notif', n);
+  const responder = esperando.get(id);
+  if (responder) { esperando.delete(id); responder(status); }
+  return true;
+}
+
+setInterval(() => {
+  for (const n of notifs) if (n.status === 'pendente' && n.expira < Date.now()) resolverNotif(n.id, 'expirado');
+}, 1000);
+
+// ---------------------------------------------------------------- execução de ações no PC
+
+function psAspas(s) { return "'" + String(s).replace(/'/g, "''") + "'"; }
+function expandirVariaveis(s) { return String(s).replace(/%([^%]+)%/g, (m, v) => process.env[v] ?? m); }
+
+function rodarPowerShell(script, tempoMs = 30000) {
+  return new Promise(resolve => {
+    const p = spawn('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command',
+      '[Console]::OutputEncoding=[Text.Encoding]::UTF8;' + script], { windowsHide: true });
+    let saida = '';
+    const t = setTimeout(() => p.kill(), tempoMs);
+    p.stdout.on('data', d => saida += d);
+    p.stderr.on('data', d => saida += d);
+    p.on('error', e => { clearTimeout(t); resolve({ codigo: -1, saida: e.message }); });
+    p.on('close', codigo => { clearTimeout(t); resolve({ codigo, saida }); });
+  });
+}
+
+function rodarShell(comando, tempoMs = 30000) {
+  return new Promise(resolve => {
+    exec(comando, { timeout: tempoMs, windowsHide: true, maxBuffer: 1 << 20 }, (erro, out, err) => {
+      resolve({ codigo: erro ? (erro.code ?? -1) : 0, saida: (out || '') + (err || '') });
+    });
+  });
+}
+
+// Teclas: um PowerShell fica aberto em segundo plano para os atalhos saírem na hora.
+const TECLAS = {
+  ctrl: 0x11, control: 0x11, shift: 0x10, alt: 0x12, win: 0x5B, windows: 0x5B,
+  enter: 0x0D, esc: 0x1B, escape: 0x1B, tab: 0x09, espaco: 0x20, space: 0x20,
+  backspace: 0x08, delete: 0x2E, del: 0x2E, insert: 0x2D, home: 0x24, end: 0x23,
+  pageup: 0x21, pagedown: 0x22, esquerda: 0x25, left: 0x25, cima: 0x26, up: 0x26,
+  direita: 0x27, right: 0x27, baixo: 0x28, down: 0x28, printscreen: 0x2C, prtsc: 0x2C,
+  playpause: 0xB3, proxima: 0xB0, next: 0xB0, anterior: 0xB1, prev: 0xB1, stop: 0xB2,
+  volumemais: 0xAF, volup: 0xAF, volumemenos: 0xAE, voldown: 0xAE, mudo: 0xAD, mute: 0xAD,
+};
+
+function codigosDasTeclas(texto) {
+  return String(texto).toLowerCase().split('+').map(s => s.trim()).filter(Boolean).map(k => {
+    if (TECLAS[k] != null) return TECLAS[k];
+    if (/^[a-z0-9]$/.test(k)) return k.toUpperCase().charCodeAt(0);
+    const f = /^f([1-9]|1[0-9]|2[0-4])$/.exec(k);
+    if (f) return 0x6F + Number(f[1]);
+    throw new Error(`Tecla desconhecida: "${k}"`);
+  });
+}
+
+let trabalhadorTeclas = null;
+function enviarTeclas(codigos) {
+  if (!trabalhadorTeclas) {
+    trabalhadorTeclas = spawn('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File',
+      path.join(RAIZ, 'ferramentas', 'teclas.ps1')], { windowsHide: true, stdio: ['pipe', 'ignore', 'inherit'] });
+    trabalhadorTeclas.on('exit', () => { trabalhadorTeclas = null; });
+  }
+  trabalhadorTeclas.stdin.write('K ' + codigos.join(',') + '\n');
+}
+
+async function executar(b, extra = {}) {
+  const a = b.acao || {};
+  switch (a.tipo) {
+    case 'app': {
+      const alvo = expandirVariaveis(a.caminho || '');
+      if (!alvo) throw new Error('Botão sem caminho configurado');
+      if (WINDOWS) {
+        let s = `Start-Process -FilePath ${psAspas(alvo)}`;
+        if (a.argumentos) s += ` -ArgumentList ${psAspas(expandirVariaveis(a.argumentos))}`;
+        const r = await rodarPowerShell(s, 15000);
+        if (r.codigo !== 0) throw new Error(r.saida.trim() || 'Não consegui abrir');
+      } else {
+        spawn(process.platform === 'darwin' ? 'open' : 'xdg-open', [alvo], { detached: true, stdio: 'ignore' }).unref();
+      }
+      return { ok: true };
+    }
+    case 'comando': {
+      if (!a.comando) throw new Error('Botão sem comando configurado');
+      const r = WINDOWS && (a.shell || 'powershell') === 'powershell'
+        ? await rodarPowerShell(a.comando)
+        : await rodarShell(a.comando);
+      return { ok: r.codigo === 0, saida: a.mostrarSaida || r.codigo !== 0 ? r.saida.slice(-4000) : undefined };
+    }
+    case 'atalho': {
+      if (!WINDOWS) throw new Error('Atalhos de teclado só funcionam no Windows');
+      enviarTeclas(codigosDasTeclas(a.teclas));
+      return { ok: true };
+    }
+    case 'texto-pc': {
+      const texto = String(extra.texto ?? a.texto ?? '').slice(0, 8000);
+      if (!WINDOWS) throw new Error('Área de transferência só no Windows');
+      const b64 = Buffer.from(texto, 'utf8').toString('base64');
+      const r = await rodarPowerShell(`Set-Clipboard -Value ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${b64}')))`);
+      if (r.codigo !== 0) throw new Error(r.saida.trim());
+      if (a.colar) setTimeout(() => enviarTeclas([0x11, 0x56]), 150);
+      return { ok: true };
+    }
+    case 'clipboard-pc': {
+      if (!WINDOWS) throw new Error('Área de transferência só no Windows');
+      const r = await rodarPowerShell(`$c = Get-Clipboard -Raw; if ($c -eq $null) { $c = '' }; [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes($c))`);
+      return { ok: true, texto: Buffer.from(r.saida.trim(), 'base64').toString('utf8') };
+    }
+    default:
+      throw new Error(`Tipo de ação desconhecido: ${a.tipo}`);
+  }
+}
+
+// ---------------------------------------------------------------- espelho das notificações do Windows (experimental)
+// Lê o banco onde o próprio Windows guarda as notificações e repassa as novas para o celular.
+
+function iniciarEspelhoWindows() {
+  if (!WINDOWS || cfg.espelharNotificacoesWindows === false) return;
+  let sqlite;
+  try { sqlite = require('node:sqlite'); } catch {
+    log('ℹ️  Para espelhar as notificações do Windows, atualize o Node para a versão 22.13 ou mais nova.');
+    return;
+  }
+  const banco = path.join(process.env.LOCALAPPDATA || '', 'Microsoft', 'Windows', 'Notifications', 'wpndatabase.db');
+  const ignorar = (cfg.ignorarApps || []).map(s => s.toLowerCase());
+  let ultimo = null, avisou = false;
+
+  const tick = () => {
+    let db;
+    try {
+      db = new sqlite.DatabaseSync(banco, { readOnly: true });
+      if (ultimo === null) {
+        ultimo = db.prepare('SELECT MAX(Id) AS m FROM Notification').get().m || 0;
+        log('🪟 Espelhando notificações do Windows (experimental)');
+        return;
+      }
+      const linhas = db.prepare(`SELECT n.Id AS id, n.Payload AS payload, h.PrimaryId AS app
+        FROM Notification n LEFT JOIN NotificationHandler h ON h.RecordId = n.HandlerId
+        WHERE n.Type = 'toast' AND n.Id > ? ORDER BY n.Id`).all(ultimo);
+      for (const l of linhas) {
+        ultimo = Math.max(ultimo, l.id);
+        const xml = typeof l.payload === 'string' ? l.payload : Buffer.from(l.payload || []).toString('utf8');
+        const textos = [...xml.matchAll(/<text[^>]*>([\s\S]*?)<\/text>/g)].map(m => desescaparXml(m[1]).trim()).filter(Boolean);
+        if (!textos.length) continue;
+        const app = nomeDoApp(l.app);
+        if (ignorar.some(i => app.toLowerCase().includes(i))) continue;
+        criarNotif({ titulo: textos[0], mensagem: textos.slice(1).join('\n'), origem: app });
+      }
+    } catch (e) {
+      if (!avisou) { log('⚠️  Não consegui ler as notificações do Windows: ' + e.message); avisou = true; }
+    } finally { try { db?.close(); } catch {} }
+  };
+  tick();
+  setInterval(tick, 3000);
+}
+
+function desescaparXml(s) {
+  return s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'")
+    .replace(/&#(\d+);/g, (m, n) => String.fromCodePoint(+n)).replace(/&amp;/g, '&');
+}
+
+function nomeDoApp(id) {
+  if (!id) return 'Windows';
+  let s = String(id).split('\\').pop().split('!')[0];
+  s = s.replace(/\.exe$/i, '').replace(/_[a-z0-9]{13}$/i, '');
+  s = s.split('.').filter(p => !/^(microsoft|windows|com)$/i.test(p)).pop() || s;
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
+// ---------------------------------------------------------------- atualizações
+// O servidor confere de tempos em tempos se saiu versão nova. Quando você manda atualizar pelo celular,
+// ele baixa os arquivos, confere cada um pelo hash, troca tudo de uma vez e reinicia sozinho.
+// O config.json (seus botões e o token) nunca é tocado.
+
+let atualizacao = null; // { versao, notas } quando houver versão nova
+const sha256 = b => crypto.createHash('sha256').update(b).digest('hex');
+const urlBase = () => String(cfg.urlAtualizacao || '').replace(/\/+$/, '');
+
+function versaoMaior(a, b) {
+  const pa = String(a).split('.').map(Number), pb = String(b).split('.').map(Number);
+  for (let i = 0; i < 3; i++) if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) > (pb[i] || 0);
+  return false;
+}
+
+async function buscarManifesto() {
+  const r = await fetch(urlBase() + '/manifesto.json', { cache: 'no-store', signal: AbortSignal.timeout(15000) });
+  if (!r.ok) throw new Error('Servidor de atualizações respondeu ' + r.status);
+  return r.json();
+}
+
+let avisouErroAtualizacao = false;
+async function verificarAtualizacao() {
+  if (!urlBase()) return { atual: VERSAO, nova: null };
+  try {
+    const m = await buscarManifesto();
+    const antes = atualizacao?.versao;
+    atualizacao = versaoMaior(m.versao, VERSAO) ? { versao: m.versao, notas: m.notas || '' } : null;
+    if (atualizacao && atualizacao.versao !== antes) log(`⬆️  Versão ${atualizacao.versao} disponível. Atualize pelo celular (toque no aviso azul).`);
+    enviar('atualizacao', atualizacao);
+    avisouErroAtualizacao = false;
+    return { atual: VERSAO, nova: atualizacao };
+  } catch (e) {
+    if (!avisouErroAtualizacao) { log('ℹ️  Não consegui procurar atualizações: ' + e.message); avisouErroAtualizacao = true; }
+    return { atual: VERSAO, nova: atualizacao, erro: 'Não consegui procurar atualizações agora.' };
+  }
+}
+setInterval(verificarAtualizacao, 3 * 3600 * 1000);
+
+async function aplicarAtualizacao() {
+  const m = await buscarManifesto();
+  if (!versaoMaior(m.versao, VERSAO)) throw new Error('Você já está na versão mais nova');
+  const novos = [];
+  for (const [rel, hash] of Object.entries(m.arquivos || {})) {
+    if (rel === 'config.json' || rel.includes('..') || !/^[\w][\w./-]*$/.test(rel)) throw new Error('Atualização com arquivo inválido: ' + rel);
+    const destino = path.join(RAIZ, rel);
+    if (fs.existsSync(destino) && sha256(fs.readFileSync(destino)) === hash) continue;
+    const r = await fetch(urlBase() + '/' + rel, { cache: 'no-store', signal: AbortSignal.timeout(30000) });
+    if (!r.ok) throw new Error('Falha ao baixar ' + rel);
+    const dados = Buffer.from(await r.arrayBuffer());
+    if (sha256(dados) !== hash) throw new Error('Arquivo veio corrompido: ' + rel);
+    novos.push([destino, dados]);
+  }
+  // só grava depois de baixar e conferir tudo
+  trabalhadorTeclas?.kill();
+  for (const [destino, dados] of novos) {
+    fs.mkdirSync(path.dirname(destino), { recursive: true });
+    fs.writeFileSync(destino + '.novo', dados);
+    fs.renameSync(destino + '.novo', destino);
+  }
+  log(`✅ Atualizado para a versão ${m.versao} (${novos.length} arquivos). Reiniciando…`);
+  return m.versao;
+}
+
+const MARCA_REINICIO = path.join(RAIZ, '.reiniciando');
+function reiniciar() {
+  enviar('reiniciando', {});
+  fs.writeFileSync(MARCA_REINICIO, '1');
+  setTimeout(() => {
+    servidor.close();
+    for (const res of clientes) res.end();
+    if (process.env.STREAMDECK_BAT) process.exit(42); // o iniciar.bat abre de novo
+    spawn(process.execPath, [__filename], { detached: true, stdio: 'inherit', cwd: RAIZ }).unref();
+    process.exit(0);
+  }, 700);
+}
+
+// ---------------------------------------------------------------- HTTP
+
+const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml', '.png': 'image/png', '.mp4': 'video/mp4' };
+
+function json(res, codigo, dados) {
+  res.writeHead(codigo, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+  res.end(JSON.stringify(dados));
+}
+
+function lerCorpo(req) {
+  return new Promise((resolve, reject) => {
+    let d = '';
+    req.on('data', c => { d += c; if (d.length > 1e6) { reject(new Error('grande demais')); req.destroy(); } });
+    req.on('end', () => { try { resolve(d ? JSON.parse(d) : {}); } catch { reject(new Error('JSON inválido')); } });
+  });
+}
+
+function autorizado(req, url) {
+  const t = String(req.headers['x-token'] || url.searchParams.get('t') || '');
+  const a = Buffer.from(t), b = Buffer.from(cfg.token);
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+function local(req) {
+  return ['127.0.0.1', '::1', '::ffff:127.0.0.1'].includes(req.socket.remoteAddress);
+}
+
+function ipsDaRede() {
+  const ips = [];
+  for (const [nome, lista] of Object.entries(os.networkInterfaces()))
+    for (const i of lista || []) if (i.family === 'IPv4' && !i.internal && !/vEthernet|VirtualBox|VMware|WSL/i.test(nome)) ips.push(i.address);
+  return ips.sort((a, b) => (b.startsWith('192.168.') - a.startsWith('192.168.')));
+}
+
+function servirArquivo(res, arquivo) {
+  const alvo = path.normalize(path.join(PUBLICO, arquivo));
+  if (!alvo.startsWith(PUBLICO)) { res.writeHead(403); return res.end(); }
+  fs.readFile(alvo, (erro, dados) => {
+    if (erro) { res.writeHead(404); return res.end('Não encontrado'); }
+    res.writeHead(200, { 'Content-Type': TIPOS[path.extname(alvo)] || 'application/octet-stream', 'Cache-Control': 'no-cache' });
+    res.end(dados);
+  });
+}
+
+function paginaPareamento() {
+  const urls = ipsDaRede().map(ip => `http://${ip}:${cfg.porta}/?t=${cfg.token}`);
+  return `<!doctype html><html lang="pt-BR"><meta charset="utf-8"><title>Parear Stream Deck</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>body{font-family:system-ui,sans-serif;background:#111;color:#eee;display:grid;place-items:center;min-height:100vh;margin:0}
+main{text-align:center;max-width:520px;padding:24px}.qr{background:#fff;padding:16px;border-radius:12px;display:inline-block;margin:16px 0}
+code{display:block;word-break:break-all;background:#222;padding:10px;border-radius:8px;font-size:13px;margin:6px 0}p{color:#aaa}</style>
+<main><h1>Parear o celular</h1><p>Com o celular no mesmo Wi-Fi do PC, aponte a câmera para o código.</p>
+${urls.length ? urls.map((u, i) => `<div class="qr" id="qr${i}"></div><code>${u}</code>`).join('') : '<p>Não achei o IP do PC na rede. Confira se ele está conectado ao Wi-Fi ou cabo.</p>'}
+<p>Não compartilhe este código: quem tiver ele controla o PC.</p></main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>${JSON.stringify(urls)}.forEach((u,i)=>{try{new QRCode(document.getElementById('qr'+i),{text:u,width:240,height:240})}catch(e){}})</script></html>`;
+}
+
+const servidor = http.createServer(async (req, res) => {
+  const url = new URL(req.url, 'http://x');
+  const rota = url.pathname;
+
+  try {
+    if (rota === '/parear') {
+      if (!local(req)) { res.writeHead(403); return res.end('Abra esta página no próprio PC.'); }
+      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+      return res.end(paginaPareamento());
+    }
+
+    if (!rota.startsWith('/api/')) return servirArquivo(res, rota === '/' ? 'index.html' : rota.slice(1));
+
+    if (!autorizado(req, url)) return json(res, 401, { erro: 'Token inválido. Pareie de novo pelo QR code.' });
+
+    if (rota === '/api/eventos') {
+      res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', Connection: 'keep-alive' });
+      clientes.add(res);
+      enviar('estado', { config: configPublica(), notifs, stats, atualizacao }, res);
+      req.on('close', () => clientes.delete(res));
+      return;
+    }
+
+    if (rota === '/api/ping') return json(res, 200, { ok: true });
+    if (req.method !== 'POST') return json(res, 405, { erro: 'Use POST' });
+    const corpo = await lerCorpo(req);
+
+    if (rota === '/api/acao') {
+      const b = acharBotao(corpo.id);
+      if (!b) return json(res, 404, { erro: 'Botão não encontrado' });
+      log(`▶️  ${b.nome}`);
+      try { return json(res, 200, await executar(b, corpo)); }
+      catch (e) { return json(res, 200, { ok: false, erro: e.message }); }
+    }
+
+    if (rota === '/api/config') {
+      if (!Array.isArray(corpo.paginas)) return json(res, 400, { erro: 'Config inválida' });
+      cfg.paginas = corpo.paginas.map(p => ({ id: p.id, nome: String(p.nome || 'Página'), botoes: Array.isArray(p.botoes) ? p.botoes : [] }));
+      if (corpo.colunas) cfg.colunas = Math.min(6, Math.max(2, +corpo.colunas || 3));
+      if ('colunasDeitado' in corpo) cfg.colunasDeitado = Math.min(10, Math.max(0, +corpo.colunasDeitado || 0));
+      garantirIds(cfg);
+      salvarConfig(cfg);
+      enviar('config', configPublica());
+      return json(res, 200, { ok: true });
+    }
+
+    if (rota === '/api/notificar') {
+      const n = criarNotif(corpo);
+      if (!(n.perguntar && corpo.esperar)) return json(res, 200, { id: n.id });
+      // Segura a resposta até alguém decidir no celular (ou o tempo acabar).
+      esperando.set(n.id, status => json(res, 200, { id: n.id, decisao: status }));
+      req.on('close', () => { if (esperando.has(n.id)) { esperando.delete(n.id); resolverNotif(n.id, 'expirado'); } });
+      return;
+    }
+
+    if (rota === '/api/decidir') {
+      const mapa = { permitir: 'permitido', negar: 'negado', pc: 'no-pc' };
+      if (!mapa[corpo.decisao]) return json(res, 400, { erro: 'Decisão inválida' });
+      return json(res, 200, { ok: resolverNotif(corpo.id, mapa[corpo.decisao]) });
+    }
+
+    if (rota === '/api/limpar') {
+      for (let i = notifs.length - 1; i >= 0; i--)
+        if (notifs[i].status !== 'pendente' && (!corpo.id || notifs[i].id === corpo.id)) notifs.splice(i, 1);
+      enviar('estado', { config: configPublica(), notifs, stats, atualizacao });
+      return json(res, 200, { ok: true });
+    }
+
+    if (rota === '/api/atualizacao') return json(res, 200, await verificarAtualizacao());
+
+    if (rota === '/api/atualizar') {
+      try {
+        const versao = await aplicarAtualizacao();
+        json(res, 200, { ok: true, versao });
+        reiniciar();
+      } catch (e) { json(res, 200, { ok: false, erro: e.message }); }
+      return;
+    }
+
+    return json(res, 404, { erro: 'Rota desconhecida' });
+  } catch (e) {
+    return json(res, 500, { erro: e.message });
+  }
+});
+
+function log(msg) {
+  console.log(`[${new Date().toLocaleTimeString('pt-BR')}] ${msg}`);
+}
+
+const reiniciou = fs.existsSync(MARCA_REINICIO);
+if (reiniciou) fs.rmSync(MARCA_REINICIO, { force: true });
+let tentativas = 0;
+
+servidor.listen(cfg.porta, '0.0.0.0', () => {
+  const ips = ipsDaRede();
+  console.log(`\n  🎛️  Stream Deck v${VERSAO} rodando!\n`);
+  console.log(`  Para parear, abra no PC:  http://localhost:${cfg.porta}/parear`);
+  ips.forEach(ip => console.log(`  Endereço na rede:         http://${ip}:${cfg.porta}`));
+  console.log('\n  Deixe esta janela aberta. Ctrl+C para fechar.\n');
+  if (WINDOWS && cfg.abrirPareamentoAoIniciar !== false && !reiniciou)
+    rodarPowerShell(`Start-Process 'http://localhost:${cfg.porta}/parear'`);
+  iniciarEspelhoWindows();
+  verificarAtualizacao();
+});
+
+servidor.on('error', e => {
+  if (e.code === 'EADDRINUSE' && reiniciou && tentativas++ < 10) return setTimeout(() => servidor.listen(cfg.porta, '0.0.0.0'), 500);
+  if (e.code === 'EADDRINUSE') console.error(`\n  A porta ${cfg.porta} já está em uso. O Stream Deck já está aberto em outra janela?\n`);
+  else console.error(e);
+  process.exit(1);
+});

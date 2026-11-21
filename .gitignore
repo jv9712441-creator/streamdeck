@@ -1,0 +1,6 @@
+config.json
+config.json.tmp
+.reiniciando
+*.novo
+*.backup
+node_modules/

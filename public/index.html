@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#000000">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icone.svg">
+<link rel="stylesheet" href="app.css">
+<title>Stream Deck</title>
+</head>
+<body>
+
+<header id="topo">
+  <div id="barra">
+    <span id="status" title="Conexão">●</span>
+    <span id="uso"></span>
+    <button id="btnNotifs" aria-label="Notificações">🔔<b id="contador" hidden></b></button>
+    <button id="btnRelogio" aria-label="Modo relógio">🕐</button>
+    <button id="btnEditar" aria-label="Editar botões">✏️</button>
+  </div>
+  <nav id="abas"></nav>
+</header>
+<button id="atualizar" hidden></button>
+
+<div id="editarBarra" hidden>
+  <span>Editando</span>
+  <label>Colunas <button data-col="-1">−</button><b id="numColunas">3</b><button data-col="1">+</button></label>
+  <button id="btnPaginaConfig">Página…</button>
+  <button id="btnVersao">v?</button>
+</div>
+
+<main id="grade"></main>
+
+<!-- Sem pareamento -->
+<section id="parear" class="tela" hidden>
+  <h1>🎛️ Stream Deck</h1>
+  <p>No PC, rode <code>iniciar.bat</code> e escaneie o QR code que aparece em <code>localhost:8765/parear</code>.</p>
+  <p>Ou cole o token aqui:</p>
+  <input id="tokenManual" placeholder="token" autocomplete="off">
+  <button id="btnSalvarToken" class="primario">Conectar</button>
+</section>
+
+<!-- Modo relógio (Always On Display) -->
+<section id="aod" hidden>
+  <div id="aodConteudo">
+    <div id="aodRelogio"></div>
+    <div id="aodData"></div>
+    <div id="aodInfo"></div>
+  </div>
+  <div id="aodDica">toque para trocar o estilo</div>
+  <button id="aodSair" aria-label="Sair do relógio">✕</button>
+</section>
+
+<!-- Painel de notificações -->
+<section id="painelNotifs" class="painel" hidden>
+  <header><h2>Notificações</h2><button id="btnLimpar">Limpar</button><button data-fechar>✕</button></header>
+  <div id="listaNotifs"></div>
+</section>
+
+<!-- Pedido de permissão -->
+<section id="pedido" class="modal" hidden>
+  <div class="caixa">
+    <div id="pedidoOrigem" class="etiqueta"></div>
+    <h2 id="pedidoTitulo"></h2>
+    <pre id="pedidoMensagem"></pre>
+    <div id="pedidoTempo"></div>
+    <div class="linha">
+      <button id="btnNegar" class="perigo">Negar</button>
+      <button id="btnPermitir" class="sucesso">Permitir</button>
+    </div>
+    <button id="btnNoPC" class="link">Responder no PC</button>
+  </div>
+</section>
+
+<!-- Modal genérico (texto, saída de comando, editor) -->
+<section id="modal" class="modal" hidden>
+  <div class="caixa" id="modalCaixa"></div>
+</section>
+
+<div id="aviso" hidden></div>
+<video id="acordado" src="acordado.mp4" muted playsinline loop></video>
+
+<script src="app.js"></script>
+</body>
+</html>

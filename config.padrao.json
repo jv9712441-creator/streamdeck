@@ -162,12 +162,12 @@
           }
         },
         {
-          "nome": "Clientes",
-          "icone": "👥",
-          "cor": "#2563eb",
+          "nome": "Microfone",
+          "icone": "🎙️",
+          "cor": "#b91c1c",
           "acao": {
-            "tipo": "app",
-            "caminho": ""
+            "tipo": "microfone",
+            "modo": "alternar"
           }
         },
         {
@@ -758,29 +758,6 @@
           }
         }
       ]
-    },
-    {
-      "nome": "EXTRAS",
-      "botoes": [
-        {
-          "nome": "Checklist",
-          "icone": "✅",
-          "cor": "#16a34a",
-          "acao": {
-            "tipo": "app",
-            "caminho": "%STREAMDECK%\\checklist.txt"
-          }
-        },
-        {
-          "nome": "Pomodoro",
-          "icone": "🍅",
-          "cor": "#dc2626",
-          "acao": {
-            "tipo": "relogio",
-            "estilo": "pomodoro"
-          }
-        }
-      ]
     }
   ],
   "obs": {
@@ -792,6 +769,7 @@
     "mixer-steelseries",
     "dev-mode-2",
     "modos-3",
-    "mixer-2"
+    "mixer-2",
+    "extras-clientes"
   ]
 }

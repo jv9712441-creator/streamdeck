@@ -98,6 +98,14 @@ function carregarConfig() {
       if (/mixer/i.test(b.nome) && b.acao?.tipo === 'app') { b.acao = { tipo: 'app', caminho: 'app:SteelSeries GG' }; b.icone = '🎧'; }
     c.migracoes.push('mixer-2'); mudou = true;
   }
+  if (!c.migracoes.includes('extras-clientes')) {
+    // sem a aba EXTRAS; na VILTRUN, o botão Clientes vira o de mutar o microfone
+    c.paginas = (c.paginas || []).filter(p => p.nome !== 'EXTRAS');
+    const v = c.paginas.find(p => p.nome === 'VILTRUN');
+    const i = v ? v.botoes.findIndex(b => b.nome === 'Clientes') : -1;
+    if (i >= 0) v.botoes[i] = { id: novoId(), nome: 'Microfone', icone: '🎙️', cor: '#b91c1c', acao: { tipo: 'microfone', modo: 'alternar' } };
+    c.migracoes.push('extras-clientes'); mudou = true;
+  }
   if (mudou) salvarConfig(c);
   return c;
 }

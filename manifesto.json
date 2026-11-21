@@ -1,9 +1,9 @@
 {
-  "versao": "2.0.2",
-  "notas": "Modos novos (WORK: ChatGPT e YouTube; GAMING: Steam, Discord e Spotify; STREAM: Twitch, OBS, Steam e Discord), END SESSION fecha tudo, Steam no lugar do Jogo favorito, microfone muta todos os microfones e Mixer sempre abre o SteelSeries GG.",
+  "versao": "2.0.3",
+  "notas": "Sem a aba EXTRAS; na VILTRUN, o botão Clientes virou o de mutar o microfone.",
   "arquivos": {
-    "LEIA-ME.md": "5e9c884c451934839fb97d85a331b8a2bc886557064c12873e667eec42d8d2bc",
-    "config.padrao.json": "b8a61875f231aec4931b4c3971dcfaa03f3a3d61dc761263f47e7beec05d7600",
+    "LEIA-ME.md": "47cee0904272f7132b3c3cc7406bb55533767b16b865395867f0b4a023a6c0ad",
+    "config.padrao.json": "1dd8a82f01f0a87302e4be5844114d89a7e31a6f7f59b28b8fd166f0676f3b63",
     "ferramentas/fechar-apps.ps1": "235c8cf1391e5c2e17fd23378b583750444cac3d9b8c8662752d6f2ae8dca0cb",
     "ferramentas/microfone.ps1": "0cb02aad4b9ec7b40b7b1742c5f7334b2d9ce3989be540aaa24910f9b160249d",
     "ferramentas/notificar.ps1": "1e2bf6ac57ca9cae6128d2fd420b355990b7681bb048660d1dd2b423f9ff7f3c",
@@ -26,7 +26,7 @@
     "public/manifest.webmanifest": "8242b1da8ec7241d94872f31eeced600e4da92c4ad528f2358c738a548626a1d",
     "public/marca.png": "49426210cfdc15e987734ab3f8e27b22254fd1106cc910fc337f04cce3cf3365",
     "public/sw.js": "31d7591198cb17c0f4c9a045a68eb7130fb554ccb4e92d7eee3a1a365af09a3b",
-    "server.js": "1113a7c6512c6546b85f283ed800eb74639de70fdc2efc8f5a7135198041e530",
-    "versao.json": "1bee0958dc0a16c4d56016c092bbbe4eeb384b5dad89edd8ded0d6953e57500a"
+    "server.js": "171d413b16e66f62df425926f30bd0b17c33be5956ae2f62b90a1314155c1fca",
+    "versao.json": "13432221cd1a06c10d0ad0a4bd8729b203037a3e8cb53c655561967575bad128"
   }
 }

@@ -1,9 +1,10 @@
 {
-  "versao": "2.2.1",
-  "notas": "Relógio Tático (PM) agora preenche a tela toda.",
+  "versao": "2.2.2",
+  "notas": "Corrigido: botões de abrir programa (Claude, Stoat, ChatGPT, Steam, SteelSeries GG, OBS) agora acham os programas no seu PC.",
   "arquivos": {
     "LEIA-ME.md": "975b67fe525d64e910099c5fa72411104c229a6678dea06f96ed13732172c529",
     "config.padrao.json": "976e2b6c8f7b0680d26bb36f8cc0332a8e9a4ce42e2b19426367fea1de481c30",
+    "ferramentas/abrir-app.ps1": "c50f87b11b5faef8131b3c99c0af37ecde96dad931d956108b0be2f1b59578ef",
     "ferramentas/fechar-apps.ps1": "235c8cf1391e5c2e17fd23378b583750444cac3d9b8c8662752d6f2ae8dca0cb",
     "ferramentas/microfone.ps1": "0cb02aad4b9ec7b40b7b1742c5f7334b2d9ce3989be540aaa24910f9b160249d",
     "ferramentas/notificar.ps1": "1e2bf6ac57ca9cae6128d2fd420b355990b7681bb048660d1dd2b423f9ff7f3c",
@@ -34,7 +35,7 @@
     "public/marca.png": "49426210cfdc15e987734ab3f8e27b22254fd1106cc910fc337f04cce3cf3365",
     "public/sw.js": "2561e7b4de3e4036f790e6964ef22810646bed04abc070d062e6d609aa6f473f",
     "public/textura-gasta.png": "9a62d5399fac300235451e3e44040b87dd78062997a272646931b6849d93ab20",
-    "server.js": "ce75dabe25ff2820284cba5e3d6eb85fd67192b2faa9d61bc8e9d3d39d4372ef",
-    "versao.json": "5a243084985a6ea055484a41112d5a1f7a14799355a1f8c33c84bf8ecd98c739"
+    "server.js": "86192dac180eaceacdce7b5861a4df94a2a5d515b326c9bdb5f4fa0a42bdf5d6",
+    "versao.json": "ab8a81a14cae62b8d4c744e543ac3599d133e2a02c8ee11cc01513ca4eb36e34"
   }
 }

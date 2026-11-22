@@ -279,11 +279,11 @@ async function executar(b, extra = {}) {
       if (WINDOWS && /^app:/i.test(alvo)) {
         // "app:Nome" abre pelo nome que aparece no menu Iniciar (não importa onde foi instalado)
         const nome = alvo.slice(4).trim();
-        const r = await rodarPowerShell(`$l = Get-StartApps; $a = $l | Where-Object { $_.Name -eq ${psAspas(nome)} } | Select-Object -First 1;
-          if (-not $a) { $a = $l | Where-Object { $_.Name -like ${psAspas('*' + nome + '*')} } | Select-Object -First 1 };
-          if (-not $a) { Write-Output 'NAO_ACHEI'; exit 1 }; Start-Process ('shell:AppsFolder\' + $a.AppID)`, 15000);
-        if (r.saida.includes('NAO_ACHEI')) throw new Error(`Não achei "${nome}" no menu Iniciar do PC.`);
-        if (r.codigo !== 0) throw new Error(r.saida.trim() || 'Não consegui abrir');
+        const r = await rodarPowerShell(`& ${psAspas(path.join(RAIZ, 'ferramentas', 'abrir-app.ps1'))} -Nome ${psAspas(nome)}`, 20000);
+        const saida = r.saida.trim();
+        log(`🚀 ${nome}: ${saida.split(/\r?\n/).pop()}`);
+        if (saida.includes('NAO_ACHEI')) throw new Error(`Não achei "${nome}" no menu Iniciar do PC. Confira o nome no ✏️ (igual aparece no menu Iniciar).`);
+        if (r.codigo !== 0 || !/\bOK\b/.test(saida)) throw new Error('Não consegui abrir: ' + (saida.slice(-200) || 'erro desconhecido'));
       } else if (WINDOWS) {
         let s = `Start-Process -FilePath ${psAspas(alvo)}`;
         if (a.argumentos) s += ` -ArgumentList ${psAspas(expandirVariaveis(a.argumentos))}`;

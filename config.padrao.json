@@ -313,12 +313,13 @@
           }
         },
         {
-          "nome": "WhatsApp Web",
+          "nome": "WhatsApp",
           "icone": "🟢",
           "cor": "#16a34a",
           "acao": {
             "tipo": "app",
-            "caminho": "https://web.whatsapp.com"
+            "caminho": "app:WhatsApp",
+            "alternativa": "https://web.whatsapp.com"
           }
         },
         {
@@ -513,8 +514,7 @@
           "cor": "#5865f2",
           "acao": {
             "tipo": "app",
-            "caminho": "%LOCALAPPDATA%\\Discord\\Update.exe",
-            "argumentos": "--processStart Discord.exe"
+            "caminho": "app:Discord"
           }
         },
         {
@@ -754,7 +754,8 @@
           "cor": "#16a34a",
           "acao": {
             "tipo": "app",
-            "caminho": "https://open.spotify.com"
+            "caminho": "app:Spotify",
+            "alternativa": "https://open.spotify.com"
           }
         },
         {
@@ -780,6 +781,7 @@
     "modos-3",
     "mixer-2",
     "extras-clientes",
-    "audio-mic"
+    "audio-mic",
+    "apps-4"
   ]
 }

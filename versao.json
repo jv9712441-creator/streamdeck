@@ -1,1 +1,1 @@
-{ "versao": "2.2.2", "notas": "Corrigido: botões de abrir programa (Claude, Stoat, ChatGPT, Steam, SteelSeries GG, OBS) agora acham os programas no seu PC." }
+{ "versao": "2.2.3", "notas": "Botões abrem os programas instalados (Claude, Stoat, ChatGPT, WhatsApp, Discord, Steam, SteelSeries GG, OBS). Spotify abre o programa quando ele estiver instalado." }

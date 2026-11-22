@@ -391,7 +391,8 @@ function renderizarUso() {
 const TIPOS = {
   app: { nome: 'Abrir app ou site', campos: [
     ['caminho', 'Programa, arquivo ou site', 'texto', 'Ex.: app:SteelSeries GG (nome do menu Iniciar), notepad, https://youtube.com, C:\\Jogos\\jogo.exe, spotify:'],
-    ['argumentos', 'Argumentos (opcional)', 'texto', '']] },
+    ['argumentos', 'Argumentos (opcional)', 'texto', ''],
+    ['alternativa', 'Site para abrir se o programa não estiver instalado (opcional)', 'texto', 'Ex.: https://open.spotify.com']] },
   comando: { nome: 'Rodar comando', campos: [
     ['comando', 'Comando', 'area', 'Ex.: Get-Date, ipconfig, shutdown /r /t 0'],
     ['shell', 'Rodar no', 'select', '', { powershell: 'PowerShell', cmd: 'Prompt (cmd)' }],

@@ -113,6 +113,19 @@ function carregarConfig() {
       a.botoes.push({ id: novoId(), nome: 'Microfone', icone: '🎙️', cor: '#b91c1c', acao: { tipo: 'microfone', modo: 'alternar' } });
     c.migracoes.push('audio-mic'); mudou = true;
   }
+  if (!c.migracoes.includes('apps-4')) {
+    // abrir o programa instalado em vez do site
+    for (const p of c.paginas || []) for (const b of p.botoes || []) {
+      const cam = String(b.acao?.caminho || '');
+      if (b.acao?.tipo !== 'app') continue;
+      if (/spotify/i.test(cam)) b.acao = { tipo: 'app', caminho: 'app:Spotify', alternativa: 'https://open.spotify.com' };
+      else if (/web\.whatsapp\.com/i.test(cam) && !/firefox/i.test(cam)) { b.acao = { tipo: 'app', caminho: 'app:WhatsApp', alternativa: 'https://web.whatsapp.com' }; if (b.nome === 'WhatsApp Web') b.nome = 'WhatsApp'; }
+      else if (/Discord\\Update\.exe/i.test(cam)) b.acao = { tipo: 'app', caminho: 'app:Discord' };
+    }
+    for (const p of c.paginas || []) for (const b of p.botoes || [])
+      if (b.acao?.tipo === 'sequencia') b.acao.botoes = String(b.acao.botoes).split('\n').map(n => n === 'WhatsApp Web' ? 'WhatsApp' : n).join('\n');
+    c.migracoes.push('apps-4'); mudou = true;
+  }
   if (mudou) salvarConfig(c);
   return c;
 }
@@ -282,7 +295,11 @@ async function executar(b, extra = {}) {
         const r = await rodarPowerShell(`& ${psAspas(path.join(RAIZ, 'ferramentas', 'abrir-app.ps1'))} -Nome ${psAspas(nome)}`, 20000);
         const saida = r.saida.trim();
         log(`🚀 ${nome}: ${saida.split(/\r?\n/).pop()}`);
-        if (saida.includes('NAO_ACHEI')) throw new Error(`Não achei "${nome}" no menu Iniciar do PC. Confira o nome no ✏️ (igual aparece no menu Iniciar).`);
+        if (saida.includes('NAO_ACHEI')) {
+          // programa não instalado: se o botão tiver um plano B (site), abre ele
+          if (a.alternativa) { await rodarPowerShell(`Start-Process ${psAspas(expandirVariaveis(a.alternativa))}`, 15000); return { ok: true, aviso: `${nome} não está instalado no PC: abri o site` }; }
+          throw new Error(`Não achei "${nome}" no menu Iniciar do PC. Confira o nome no ✏️ (igual aparece no menu Iniciar).`);
+        }
         if (r.codigo !== 0 || !/\bOK\b/.test(saida)) throw new Error('Não consegui abrir: ' + (saida.slice(-200) || 'erro desconhecido'));
       } else if (WINDOWS) {
         let s = `Start-Process -FilePath ${psAspas(alvo)}`;

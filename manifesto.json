@@ -1,9 +1,9 @@
 {
-  "versao": "2.2.2",
-  "notas": "Corrigido: botões de abrir programa (Claude, Stoat, ChatGPT, Steam, SteelSeries GG, OBS) agora acham os programas no seu PC.",
+  "versao": "2.2.3",
+  "notas": "Botões abrem os programas instalados (Claude, Stoat, ChatGPT, WhatsApp, Discord, Steam, SteelSeries GG, OBS). Spotify abre o programa quando ele estiver instalado.",
   "arquivos": {
     "LEIA-ME.md": "975b67fe525d64e910099c5fa72411104c229a6678dea06f96ed13732172c529",
-    "config.padrao.json": "976e2b6c8f7b0680d26bb36f8cc0332a8e9a4ce42e2b19426367fea1de481c30",
+    "config.padrao.json": "8197e9e4acecc35af59a6e5e2f054527bc5a706d61ee92542abaa76006964fb5",
     "ferramentas/abrir-app.ps1": "c50f87b11b5faef8131b3c99c0af37ecde96dad931d956108b0be2f1b59578ef",
     "ferramentas/fechar-apps.ps1": "235c8cf1391e5c2e17fd23378b583750444cac3d9b8c8662752d6f2ae8dca0cb",
     "ferramentas/microfone.ps1": "0cb02aad4b9ec7b40b7b1742c5f7334b2d9ce3989be540aaa24910f9b160249d",
@@ -15,7 +15,7 @@
     "public/LICENCA-JSQR.txt": "c6596eb7be8581c18be736c846fb9173b69eccf6ef94c5135893ec56bd92ba08",
     "public/acordado.mp4": "de501c3e05673785ca4d4334d7e0cee17395bf859269cdbfedc5cf86f4c29b61",
     "public/app.css": "1dc0e816f48ddcc333b6cce35f412d6bc43b7505b296c0fc2604ca39baffd844",
-    "public/app.js": "bbc33b4059fa01bcd7d7d70e8dcedcb9bbe13b60c1e4079b7ee038b5102d4fce",
+    "public/app.js": "479ad932bc7ca48a41787ff58956b6278483afb522a987aaf590d2d43454a55f",
     "public/fontes/DSEG14Classic-Regular.woff2": "327c24d55049422f513d59fddc3919bba72186ea6b42ea8e214be06e0faa0530",
     "public/fontes/DSEG7Classic-Bold.woff2": "ec2e7499bc8ac8f8225e1fb6a5d45ff6083c6e2b0efbaf99d37fa7b42a5767ff",
     "public/fontes/LICENCA-DSEG.txt": "c6ee0567859cb7cc8d992149bbd96ad359ef65fb7355f7feae0547555ffacd23",
@@ -33,9 +33,9 @@
     "public/jsqr.js": "bc40c8a15196236b2314db0856f72ca0b49980cd5413b8c852a7349f5fee0859",
     "public/manifest.webmanifest": "8242b1da8ec7241d94872f31eeced600e4da92c4ad528f2358c738a548626a1d",
     "public/marca.png": "49426210cfdc15e987734ab3f8e27b22254fd1106cc910fc337f04cce3cf3365",
-    "public/sw.js": "2561e7b4de3e4036f790e6964ef22810646bed04abc070d062e6d609aa6f473f",
+    "public/sw.js": "07bc26f964ac34675a1324cbe82c93a35ae8432ad34b55b41debd5d09cd26ba3",
     "public/textura-gasta.png": "9a62d5399fac300235451e3e44040b87dd78062997a272646931b6849d93ab20",
-    "server.js": "86192dac180eaceacdce7b5861a4df94a2a5d515b326c9bdb5f4fa0a42bdf5d6",
-    "versao.json": "ab8a81a14cae62b8d4c744e543ac3599d133e2a02c8ee11cc01513ca4eb36e34"
+    "server.js": "572a2582b18c4fd537ffff9c3494af541777ecfa3bd97bf2f3684b8da0405106",
+    "versao.json": "273c4798478a7fa766d242dfc49a724a8278424ad7604ad8250c4345be8bcc83"
   }
 }
